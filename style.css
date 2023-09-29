@@ -208,7 +208,7 @@ nav a:hover {
 }
 
 #popup.active .content {
-    max-height: 400px;
+    height: 400px;
     width: 100%;
     overflow-y: auto; /* Add vertical scrollbar when needed */ 
     padding: 10px; /* Add some padding to the content */
