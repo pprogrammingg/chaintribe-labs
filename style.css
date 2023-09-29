@@ -188,7 +188,7 @@ nav a:hover {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 61.8vw; /* Golden ratio width (approximately 1.618 times the height) */
-    max-height: 60vh; /* 3/5 of the screen height */
+    max-height: 70vh; /* 3/5 of the screen height */
     padding: 50px;
     box-shadow: 0 5px 30px rgba(0,0,0,0.30);
     background: rgba(255, 255, 255, 0.887);
@@ -208,10 +208,11 @@ nav a:hover {
 }
 
 #popup.active .content {
-    max-height: 300px;
+    max-height: 400px;
     width: 100%;
     overflow-y: auto; /* Add vertical scrollbar when needed */ 
-    padding: 20px; /* Add some padding to the content */
+    padding: 10px; /* Add some padding to the content */
+    background-color: #56fcd22e;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Add a subtle shadow to the content */
 }
 
@@ -237,7 +238,7 @@ nav a:hover {
     z-index: 3;
 }
 
-.popup-conent-href{
+.popup-content-href{
     text-decoration: none;
     font-weight: bold;
     color: rgb(43, 147, 245);
