@@ -1,0 +1,251 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap");
+
+* {
+    box-sizing: border-box;
+    margin:0;
+    padding:0;
+    font-family: "Montserrat", sans-serif;
+    overflow: hidden;
+}
+
+body {
+    height: 100vh;
+    width: 100vw;
+    background-color: #000;
+    overflow: hidden;
+}
+
+nav {
+    height: 80px;
+    background: #041111;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0rem calc((100vw - 1300px) / 2) 0rem 2rem; /* Increased right padding */
+}
+
+nav a {
+    font-size: 1.25rem;
+    text-decoration: none;
+    color: #ffffff;
+    padding: 0 1.5rem;
+}
+
+nav a:hover {
+    color: #ffffff;
+    text-shadow:none;
+}
+
+.hero{
+    background: #000
+}
+
+.hero-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 95vh;
+    padding: 3rem calc((100vw - 1300px) / 2);
+}
+
+.logo {
+    padding: 0 2rem;
+    font-family: "Arial", sans-serif; /* Use a suitable font */
+    font-weight: bold;
+    font-style: italic;
+    font-size: 4rem; /* Adjust the font size as needed */
+    color: #efefef; /* Choose a color for your logo text */
+    text-transform: uppercase; /* Convert text to uppercase */
+    letter-spacing: 2px; /* Adjust letter spacing */
+    text-shadow: 3px 4px 4px rgba(96, 239, 237, 0.773); /* Add a text shadow */
+}
+
+#legend {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    display: block;
+}
+
+#legend.active {
+    display: none;
+}
+
+.legend-text {
+    color: white;
+    user-select: none; /* -- Prevent image highlighting -- */
+}
+
+.arrow-container {
+    display: flex;
+    flex-direction: row;
+    justify-content:space-between;
+    width: 200px;
+}
+
+.arrow {
+    border: solid rgb(255, 255, 255);
+    border-width: 0px 3px 3px 0;
+    border-radius: 3px;
+    display: inline-block;
+    padding: 3px;
+  }
+  
+.right {
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+}
+  
+.left {
+    transform: rotate(135deg);
+    -webkit-transform: rotate(135deg);
+}
+
+@keyframes wavy {
+    0% {
+        transform: translateX(-5px);
+    }
+    50% {
+        transform: translateX(5px);
+    }
+    100% {
+        transform: translateX(-5px);
+    }
+}
+
+.arrow-container {
+    animation: wavy 2s infinite;
+} 
+
+
+#image-track {
+    display: flex;
+    gap: 4vmin;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(0%, -50%);
+    user-select: none; /* -- Prevent image highlighting -- */
+    padding-left: 20px;
+    overflow: visible;
+}
+
+#image-track.active {
+    filter: blur(20px);
+    pointer-events: none;
+    user-select:none;
+}
+
+#image-track > .image-container{
+    width: 40vmin;
+    height: 56vmin;
+    display: block;
+    position: relative;
+    cursor: pointer;
+}
+
+#image-track > .image-container > .image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 100% center;
+    border-radius: 20px;
+}
+
+#image-track > .image-container > .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    opacity: 0;
+    transition: 2s ease;
+}
+
+#image-track > .image-container > .overlay > .image-text {
+    color: #ffff;
+    font-size: 40px;
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+}
+
+#image-track > .image-container:hover > .overlay{
+    opacity: 1;
+}
+
+#popup {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 61.8vw; /* Golden ratio width (approximately 1.618 times the height) */
+    max-height: 60vh; /* 3/5 of the screen height */
+    padding: 50px;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.30);
+    background: rgba(255, 255, 255, 0.887);
+    border-radius: 10px; /* Add rounded corners to the content */
+    z-index: 2;
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.75s;
+    overflow-y: hidden; /* Add vertical scrollbar when needed */
+}
+
+#popup.active {
+    top: 50%;
+    visibility: visible;
+    opacity: 1;
+    transition: 0.75s;
+}
+
+#popup.active .content {
+    max-height: 300px;
+    width: 100%;
+    overflow-y: auto; /* Add vertical scrollbar when needed */ 
+    padding: 20px; /* Add some padding to the content */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Add a subtle shadow to the content */
+}
+
+#popup.active .content > * {
+    padding: 10px;
+}
+
+#popup.active .video {
+    width: 500px;
+    height: 250px;
+    display: block; /* positions out of the flow, but according to the nearest parent */
+    margin: auto; /* make em equal */
+}
+
+#popup-close {
+    position: relative;
+    padding: 5px 20px;
+    display: inline-block;
+    margin-top: 20px;
+    color: #fff;
+    background: #111;
+    text-decoration: none;
+    z-index: 3;
+}
+
+.popup-conent-href{
+    text-decoration: none;
+    font-weight: bold;
+    color: rgb(43, 147, 245);
+    text-shadow: 2px 2px 4px rgba(201, 248, 17, 0.761); /* Add a text shadow */
+}
+
+@media screen and (max-width: 768px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+    }
+}
