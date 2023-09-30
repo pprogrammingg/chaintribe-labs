@@ -32,7 +32,7 @@ nav a {
 }
 
 nav a:hover {
-    color: #ffffff;
+    color: #51eff2;
     text-shadow:none;
 }
 
@@ -49,7 +49,7 @@ nav a:hover {
 
 .logo {
     padding: 0 2rem;
-    font-family: "Arial", sans-serif; /* Use a suitable font */
+    /* font-family: "Arial", sans-serif;  */
     font-weight: bold;
     font-style: italic;
     font-size: 4rem; /* Adjust the font size as needed */
@@ -57,6 +57,10 @@ nav a:hover {
     text-transform: uppercase; /* Convert text to uppercase */
     letter-spacing: 2px; /* Adjust letter spacing */
     text-shadow: 3px 4px 4px rgba(96, 239, 237, 0.773); /* Add a text shadow */
+}
+
+.logo:hover {
+    text-shadow: 3px 4px 4px rgba(240, 187, 11, 0.773); /* Add a text shadow */
 }
 
 #legend {
@@ -250,3 +254,173 @@ nav a:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/*  
+    =================
+    about page styles 
+    =================
+*/
+
+@keyframes pumpHeart {
+    0%, 100% {
+        transform: scale(1);
+        transform-origin: center center;
+    }
+    25%, 75% {
+        transform: scale(0.7);
+        transform-origin: center center;
+    }
+    50% {
+        transform: scale(0.4);
+        transform-origin: center center;
+    }
+}
+
+.about-hero-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    height: 80vh;
+    padding: 3rem calc((100vw - 1300px) / 2);
+}
+
+#ascii-heart {
+    color: rgba(253, 57, 139, 0.488);
+    font-size: 10rem;
+    text-align: center;
+    animation: pumpHeart 2s infinite cubic-bezier(0.25, 0.1, 0.25, 1);
+    user-select: none;
+}
+
+#heart-legend{
+    text-align: center;
+    color: white;
+}
+
+#love-container {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+#ascii-heart:hover{
+    color: rgba(120, 193, 227, 0.812);
+    animation-play-state: paused;
+}
+
+#fade-content {
+    margin-top: 5%;
+    display: flex;
+    flex-direction: column;
+    align-items:flex-start;
+    text-align: left;
+    font-size: 1.25rem;    
+    color: rgb(230, 244, 241);
+    text-shadow: 3px 4px 4px rgba(243, 178, 100, 0.773); /* Add a text shadow */
+    padding-bottom: 5px;
+}
+
+#fade-content > div:not(:last-child) {
+    margin-bottom: 15px; 
+}
+
+#fade-content b{
+    color: rgb(74, 234, 221);
+    text-shadow: 3px 4px 4px rgba(100, 214, 243, 0.773); /* Add a text shadow */
+}
+
+
+.c10x {
+    color: rgb(220, 116, 249);
+    font-size: 1.75rem;
+    font-weight: bold;
+    text-shadow: 1.5px 2px 2px rgb(0, 233, 214);
+    display: inline;
+}
+
+#l-one, #l-two, #l-three {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+#ascii-heart:hover + #fade-content #l-one {
+    opacity: 1;
+    transition-delay: 0s;
+}
+
+#ascii-heart:hover + #fade-content  #l-two {
+    opacity: 1;
+    transition-delay: 0.5s;
+}
+
+#ascii-heart:hover + #fade-content #l-three {
+    opacity: 1;
+    transition-delay: 1s;
+}
+
+/*  
+    =================
+    contact page styles 
+    =================
+*/
+
+#contact {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 500px;
+    height: 300px;
+    background-color: #bcaeff; /* Light purple background color */
+    border-radius: 15px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    overflow: hidden;
+}
+
+#contact::before {
+    content: "";
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    transform: rotate(45deg);
+}
+
+.content {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-gap: 10px;
+}
+
+.icon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+span {
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+}
+
+#contact h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#contact p {
+    font-size: 1.5rem;
+    color: #000;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
