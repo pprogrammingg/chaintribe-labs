@@ -49,7 +49,6 @@ nav a:hover {
 
 .logo {
     padding: 0 2rem;
-    /* font-family: "Arial", sans-serif;  */
     font-weight: bold;
     font-style: italic;
     font-size: 4rem; /* Adjust the font size as needed */
@@ -65,7 +64,7 @@ nav a:hover {
 
 #legend {
     position: fixed;
-    top: 100px;
+    top: 25%;
     left: 50%;
     padding: 0 2rem;
     display: flex;
