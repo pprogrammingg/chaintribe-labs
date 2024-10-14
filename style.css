@@ -186,6 +186,18 @@ nav a:hover {
     opacity: 1;
 }
 
+ul {
+    list-style-type: disc; /* Use disc bullets */
+    margin-left: 20px; /* Optional: Align bullets away from the content */
+    padding-left: 20px; /* Ensure bullets aren't too close to the content */
+}
+
+li {
+    padding-bottom: 10px; /* Space between each list item */
+    line-height: 1.5; /* Adjust line spacing for better readability */
+}
+
+
 #popup {
     position: fixed;
     top: 40%;
@@ -194,21 +206,30 @@ nav a:hover {
     width: 61.8vw; /* Golden ratio width (approximately 1.618 times the height) */
     max-height: 70vh; /* 3/5 of the screen height */
     padding: 50px;
-    box-shadow: 0 5px 30px rgba(0,0,0,0.30);
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.30);
     background: rgba(255, 255, 255, 0.887);
     border-radius: 10px; /* Add rounded corners to the content */
-    z-index: 2;
     visibility: hidden;
     opacity: 0;
-    transition: 0.75s;
+    transition: opacity 0.2s ease-in-out; /* Faster transition */
     overflow-y: hidden; /* Add vertical scrollbar when needed */
+    z-index: 100;
+}
+
+#popup .content h3 {
+    margin: 2% 0; /* 5% top and bottom margin, 0 left and right */
 }
 
 #popup.active {
     top: 50%;
     visibility: visible;
     opacity: 1;
-    transition: 0.75s;
+    transition: opacity 0.2s ease-in-out; /* Faster transition for showing */
+}
+
+#popup:not(.active) {
+    transition: none; /* Disable transition when hiding */
+    opacity: 0;
 }
 
 #popup.active .content {
@@ -216,7 +237,7 @@ nav a:hover {
     width: 100%;
     overflow-y: auto; /* Add vertical scrollbar when needed */ 
     padding: 10px; /* Add some padding to the content */
-    background-color: #56fcd22e;
+    background-color: #f3f3f3ad;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Add a subtle shadow to the content */
 }
 
@@ -229,6 +250,31 @@ nav a:hover {
     height: 250px;
     display: block; /* positions out of the flow, but according to the nearest parent */
     margin: auto; /* make em equal */
+    position: relative; /* Ensure positioning for pseudo-element */
+    border: 5px darkorange dashed; /* Space for the hatch border */
+    border-radius: 10px; /* Optional: rounded corners */
+    overflow: visible; /* Change to visible to show hatch */
+}
+
+#popup.active .video::before {
+    content: '';
+    position: absolute;
+    top: -10px; /* Match border width */
+    left: -10px; /* Match border width */
+    right: -10px; /* Match border width */
+    bottom: -10px; /* Match border width */
+    border-radius: 10px; /* Optional: rounded corners */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="5" height="5" fill="yellow"/><rect x="5" y="5" width="5" height="5" fill="yellow"/><rect width="5" height="5" fill="black"/><rect x="5" y="0" width="5" height="5" fill="black"/><rect y="5" width="5" height="5" fill="black"/></svg>');
+    background-size: 20px 20px; /* Adjust size for desired hatch density */
+    z-index: 99; /* Ensure it appears above the video */
+}
+
+#popup.active .video video {
+    width: 100%; /* Ensure video takes full width */
+    height: 100%; /* Ensure video takes full height */
+    border-radius: 10px; /* Optional: match the border radius */
+    position: relative; /* Ensure it stays behind the pseudo-element */
+    z-index: 1; /* Ensure it stays behind the hatch border */
 }
 
 #popup-close {
@@ -239,14 +285,14 @@ nav a:hover {
     color: #fff;
     background: #111;
     text-decoration: none;
-    z-index: 3;
+    z-index: 103;
 }
 
 .popup-content-href{
     text-decoration: none;
     font-weight: bold;
-    color: rgb(43, 147, 245);
-    text-shadow: 2px 2px 4px rgba(201, 248, 17, 0.761); /* Add a text shadow */
+    color: rgb(40, 7, 255);
+    text-shadow: 2px 2px 4px rgb(63, 149, 66); /* Add a text shadow */
 }
 
 @media screen and (max-width: 768px) {
@@ -276,36 +322,6 @@ nav a:hover {
     }
 }
 
-.about-hero-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    height: 80vh;
-    padding: 3rem calc((100vw - 1300px) / 2);
-}
-
-#ascii-heart {
-    color: rgba(253, 57, 139, 0.488);
-    font-size: 10rem;
-    text-align: center;
-    animation: pumpHeart 2s infinite cubic-bezier(0.25, 0.1, 0.25, 1);
-    user-select: none;
-    margin: auto;
-}
-
-#heart-legend{
-    text-align: center;
-    color: white;
-}
-
-#love-container {
-    display: flex;
-    flex-direction: column-reverse;
-}
-
-#ascii-heart:hover{
-    color: rgba(120, 193, 227, 0.812);
-    animation-play-state: paused;
-}
 
 #fade-content {
     margin-top: 5%;
@@ -328,34 +344,29 @@ nav a:hover {
     text-shadow: 3px 4px 4px rgba(100, 214, 243, 0.773); /* Add a text shadow */
 }
 
-
-.c10x {
-    color: rgb(220, 116, 249);
-    font-size: 1.75rem;
-    font-weight: bold;
-    text-shadow: 1.5px 2px 2px rgb(0, 233, 214);
-    display: inline;
+.about-section {
+    color: white;
+    padding:10% 10%; 
+    margin-top: 10px; /* Adjust the top margin */
+    line-height: 1.8em; /* Line spacing */
+    text-align: justify;
 }
 
-#l-one, #l-two, #l-three {
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+.about-section h1 {
+    text-align: left;
+    margin-bottom: 20px;
 }
 
-#ascii-heart:hover + #fade-content #l-one {
-    opacity: 1;
-    transition-delay: 0s;
+.about-section p {
+    font-size: 18px;
 }
 
-#ascii-heart:hover + #fade-content  #l-two {
-    opacity: 1;
-    transition-delay: 0.5s;
+@media only screen and (max-width: 768px) {
+    .about-section {
+        padding: 10% 5%;
+    }
 }
 
-#ascii-heart:hover + #fade-content #l-three {
-    opacity: 1;
-    transition-delay: 1s;
-}
 
 /*  
     =================
