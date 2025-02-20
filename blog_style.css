@@ -1,0 +1,96 @@
+body {
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.blog_container {
+    width: 80%;
+    margin: 10% auto;
+    padding: 20px;
+    overflow-y: scroll;
+    height: 50vh;
+    scrollbar-width: thin;
+    scrollbar-color: #555 #222;
+    border: white;
+    border-radius: 10px;
+}
+
+.blog_container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.blog_container::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 10px;
+}
+
+.blog_container::-webkit-scrollbar-thumb:hover {
+    background-color: #777;
+}
+
+.blog_post_summary {
+    border-bottom: 1px solid #444;
+    padding: 15px 0;
+}
+
+.blog_post_summary h1 {
+    font-size: 1.5em;
+    margin-bottom: 5px;
+}
+
+.blog_summary p {
+    font-family: "Inter", sans-serif; /* Choose from recommended fonts */
+    font-size: 18px; /* Comfortable reading size */
+    line-height: 1.6; /* Good spacing between lines */
+    color: white; /* High contrast for dark mode */
+    text-align: justify; /* Keeps text structured */
+    max-width: 90%; /* 90% of the parent container width */
+    margin: 0 auto; /* Center the text */
+    margin-bottom: 15px; /* Adds breathing space between paragraphs */
+}
+
+/* TOC */
+#table_of_contents {
+    width: 80%;
+    margin: 10% auto 20px auto; 
+    padding: 15px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.6); 
+    max-width: 65vw; 
+}
+
+#table_of_contents h1 {
+    color: lightblue;
+    font-size: 1.8em;
+}
+
+#table_of_contents ul {
+    list-style: none;
+    padding: 0;
+}
+
+#table_of_contents li {
+    margin: 5px 0;
+}
+
+#table_of_contents a {
+    color: lightgray;
+    text-decoration: none;
+    font-size: 1.2em;
+}
+
+#table_of_contents a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+/* Blog Post Links */
+.blog_post_link {
+    color: rgba(255, 234, 238, 0.924);
+    text-decoration: none; 
+}
+
+.blog_post_link:hover {
+    text-decoration: underline;
+}
+
