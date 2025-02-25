@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog Post</title>
-    <link rel="stylesheet" href="../../blog_style.css">
+    <link rel="stylesheet" href="../blog_style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script src="../../highlight.js" defer></script>
+    <script src="../highlight.js" defer></script>
 </head>
 <body>
     <div class="blog_container">
-        <h1>High Traffic Writes from API Gateway to DynamoDB</h1>
+        <h1>High Throughput Processing and Persistence from API Gateway to DynamoDB</h1>
         <p>
             Recently, we faced the challenge of processing and persisting around 800K records coming in from roughly 40 API Gateway requests over a short period of time.
             The following summary outlines the iterative approach we used to solve this problem.
@@ -104,13 +104,15 @@
 
         <p>
             Right off the bat, 20K records for one request — we didn’t even get to the Lambda!
-            <code>
-                HTTP/2 413 Request Entity Too Large
-
-                {
-                    "message": "Request Too Long"
-                }
-            </code>
+            <pre>
+                <code>
+                    HTTP/2 413 Request Entity Too Large
+    
+                    {
+                        "message": "Request Too Long"
+                    }
+                </code>
+            </pre>
 
             Of course, this depends on the payload, so we had to reduce the record size. Surprisingly, `19,163` was just enough to get past
             the `hugeness` test...
@@ -122,8 +124,6 @@
                 <tr>
                     <th># of Records</th>
                     <th>Error Rate %</th>
-                    <th>Avg. Latency - Lambda</th>
-                    <th># of Invocations - Lambda</th>
                 </tr>
             </thead>
             <tbody>
@@ -137,12 +137,55 @@
         <p>.. Nice! However, there were a non-trivial number of errors...</p>
 
         <p>
-        Investigating CloudWatch Lambda logs was actually quite hectic and we couldn’t figure out what went wrong from the logs. Finally, we realized
+           Investigating CloudWatch Lambda logs was actually quite hectic and we couldn’t figure out what went wrong from the logs. Finally, we realized
            <b>CloudWatch Insights</b> is much quicker and more revealing. All we had to do was click the log stream belonging to Lambda and type this 
            into the query.
         </p>
 
-        <h2># of Workers = 5, Lambda Timeout = 30 sec (default)</h2>
+        <pre>
+            <code>
+                fields @timestamp, @message
+                | filter @message like "error"
+                | sort @timestamp desc
+                | limit 50
+            </code>
+       </pre>
+
+        <p>
+            Aha! Errors are showing now, looks like too many workers are fighting for connections to DynamoDB
+        </p>
+
+        <pre>
+            <code>
+                DEBUG client connection error: connection error: Connection reset by peer (os error 104)
+            </code>
+       </pre>
+
+       <p>
+            Too many batches to process and 1 Lambda with its 10 workers seem to be much. Generally, Lambdas are meant to be invoked in a multiples.
+            If we can somehow send batches to N different Lambda invocations in a queue we can perhaps reduce this bottle necl.
+       </p>
+
+       <p>
+            We break down the previous design:
+
+            <pre>
+                <code>
+                    API GW -> Process and Write to DB Lambda -> DynamoDB
+
+                    into 
+
+                    API GW -> Deserialize and Queue Lambda -> SQS -> Write to DB Lambda -> DynamoDB
+                </code>
+            </pre>
+       </p>
+
+       <p>
+            Simultaneously, let's reduce the numbers of workers in each Lambda from 10 to 5.
+            Notice tables below measure the second Lambda's performance.
+        </p>
+
+        <h2># of Workers = 5, Lambda Timeout = 3 sec (default)</h2>
         <table>
             <thead>
                 <tr>
@@ -168,7 +211,15 @@
             </tbody>
         </table>
 
-        <h2># of Workers = 5, Lambda Timeout = 1 min (from 30 sec default)</h2>
+        <p> 
+            While for 15,000 records no errors were encountered in this design, our max around 19,150 had 22% of records not persisted.
+            This hapened because DynamoDB connection was not obtained, and while the connection was being retried, it surpassed Lambda's
+            3 seconds timeout. 
+
+            What if we increased the timeout to 1 min?
+        </p>
+
+        <h2># of Workers = 5, Lambda Timeout = 1 min (from 3 sec default)</h2>
         <table>
             <thead>
                 <tr>
@@ -194,7 +245,9 @@
             </tbody>
         </table>
 
-        <h2># of Workers = 10, Lambda Timeout = 1 min (from 30 sec default)</h2>
+        <p>Looks much better now, now let's send 10 requests, each containing 19,150 records ....  </p>
+
+        <h2># of Workers = 10, Lambda Timeout = 1 min (from 3 sec default)</h2>
         <table>
             <thead>
                 <tr>
@@ -206,7 +259,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>195,800</td>
+                    <td>191,500</td>
                     <td>1 occurrence of error due to broken pipe</td>
                     <td>209 ms</td>
                     <td>97</td>
@@ -214,10 +267,27 @@
             </tbody>
         </table>
 
-        <h2>Conclusion</h2>
         <p>
-            Scaling DynamoDB for large volumes of records requires a balance between concurrency and careful batch processing.
-            We iteratively adjusted worker counts, timeouts, and payload sizes to find an optimal configuration, ensuring minimal error rates and acceptable latency.
+            Not too bad; however, that `1 broken pipe` error makes everyone nervous, ... we can not be sure whether it eventually ended up persisting the record. 
+            And there is no way one should spend time scanning DynamoDB for missing records (DynamoDB has no `COUNT` like a regular RDBMS, 
+            so finding missing records is indeed difficult). This is definitely a great topic for observability and setting up the right 
+            alarms in the system, which we will probably tackle later.
+        </p>
+        
+        <p>
+            In Part 2, we will explore some other optimization techniques to crank up our throughput with 0 errors:
+            <ul>
+                <li>SQS can introduce new messages with some delay configured via `Delivery Delay`.</li>
+                <li>The Queueing process (i.e. Lambda 1) can introduce a random short delay before sending each message.
+                    This should help space out requests a bit.
+                </li>
+                <li>Limit the maximum concurrent Lambda 2 runs to a number like 10.</li>
+                <li>Actually make Lambda 2 single-threaded instead of concurrent — the inspiration for that arose for 2 reasons:
+                    1. Much more straight forward to report batch failures back to SQS - meaning whatever batch which fails the write, after 
+                    certain number of attempts, can be sent back to SQS for additional retrying.
+                    2. We are just purely curious what the performance of single-threaded look like compared to the concurrent one.
+                </li>
+            </ul>
         </p>
     </div>
 </body>
