@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Post</title>
+    <link rel="stylesheet" href="../../blog_style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="../../highlight.js" defer></script>
+</head>
+<body>
+    <div class="blog_container">
+        <h1>High Traffic Writes from API Gateway to DynamoDB</h1>
+        <p>
+            Recently, we faced the challenge of processing and persisting around 800K records coming in from roughly 40 API Gateway requests over a short period of time.
+            The following summary outlines the iterative approach we used to solve this problem.
+        </p>
+
+        <p>
+            Constraints: 
+            <ul>
+                <li>Obviously costs must be as low as possible</li>
+                <li>handle 800K records in one to two minutes</li>
+                <li>manage 40 requests of 20K each coming within 20 seconds.</li>
+            </ul>
+        </p>
+
+        <h2>Iteration #1 - API Gateway -> Single Lambda -> DynamoDB</h2>
+        <p> 
+            A single Lambda processing and writing to DynamoDB with concurrency seemed like a great starting point.
+            Inside the Lambda, the following steps are performed: 
+            <ol>
+                <li>Deserialize records into our Rust business object "BusinessRecord".</li>
+                <li>Divide the list of "BusinessRecord" into chunks of 25 — this is the maximum number of rows that can be written to DynamoDB in one shot using `BatchWriteItem`.</li>
+                <li>For each chunk, asynchronously write it to DynamoDB.</li>
+                <li>Check the result for each asynchronous write (check each worker) in `for_each_concurrent`.</li>
+                <li>Finally, return success, regardless of the outcome. In the future, we may need better error handling and messaging to the user (see later sections).</li>
+            </ol> 
+        </p>
+
+        <pre>
+            <code class="language-rust">
+                use std::collections::HashMap;
+                use aws_lambda_events::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
+                use futures::{stream, StreamExt};
+                use lambda_http::{http::HeaderMap, Error, LambdaEvent};
+                // rest of imports
+
+                use tracing_subscriber::{layer::SubscriberExt, Registry};
+
+                pub async fn function_handler(dynamodb: &Client, event: LambdaEvent<ApiGatewayProxyRequest>) -> Result<ApiGatewayProxyResponse, Error> {
+                    // setup like tracing, etc
+
+                    let context: &lambda_http::Context = &event.context;
+                    let context_str = serde_json::to_string_pretty(context)?;
+
+                    let lambda_req_id: String = event.context.request_id.clone();
+                    let payload: ApiGatewayProxyRequest = event.payload;
+                    let body: String = payload.body.expect("Payload not Found");
+                   
+                    // code to extract body to Vec<BusinessRecord>
+
+                    let business_record_list: Vec<BusinessRecord> = body.business_records;
+                   
+                    for business_record in business_record_list {
+                        let business_record = BusinessRecord::process(&lambda_req_id, business_record);
+                        business_record_list.extend(business_record);
+                    }
+                    
+                    // Divide list of records to chunks of 25 and process each with concurrency using 10 workers
+                    // Note: 25 is max number of rows writable via DynamoDB `BatchWriteItem`
+                    let batches: Vec<Vec<BusinessRecord>> = business_record_list.chunks(25).map(|chunk| chunk.to_vec()).collect();
+
+                    let client_ref = client;
+                    stream::iter(
+                        batches
+                            .into_iter()
+                            .map(|batch| async move { <BusinessRecord as Create>::create_batch(batch, client_ref).await }),
+                    )
+                    .buffer_unordered(10) // 10 workers
+                    .for_each_concurrent(None, |result| async move {
+                        // Handle each result as it completes
+                        result.unwrap();
+                    })
+                    .await;
+
+                    info!("\nSuccessfully processed all batches");
+
+                    let mut headers = HashMap::new();
+                    headers.insert("Content-Type".to_string(), "application/json".to_string());
+
+                    let response = ApiGatewayProxyResponse {
+                        status_code: 200,
+                        headers: HeaderMap::new(),
+                        multi_value_headers: HeaderMap::new(),
+                        body: None,
+                        is_base64_encoded: false,
+                    };
+
+                    Ok(response)
+                }
+            </code>
+        </pre>
+
+        <p>
+            Right off the bat, 20K records for one request — we didn’t even get to the Lambda!
+            <code>
+                HTTP/2 413 Request Entity Too Large
+
+                {
+                    "message": "Request Too Long"
+                }
+            </code>
+
+            Of course, this depends on the payload, so we had to reduce the record size. Surprisingly, `19,163` was just enough to get past
+            the `hugeness` test...
+        </p>
+
+        <h2># of Workers = 10, Lambda Timeout = 30 sec (default)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th># of Records</th>
+                    <th>Error Rate %</th>
+                    <th>Avg. Latency - Lambda</th>
+                    <th># of Invocations - Lambda</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>19,163</td>
+                    <td>4%</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>.. Nice! However, there were a non-trivial number of errors...</p>
+
+        <p>
+        Investigating CloudWatch Lambda logs was actually quite hectic and we couldn’t figure out what went wrong from the logs. Finally, we realized
+           <b>CloudWatch Insights</b> is much quicker and more revealing. All we had to do was click the log stream belonging to Lambda and type this 
+           into the query.
+        </p>
+
+        <h2># of Workers = 5, Lambda Timeout = 30 sec (default)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th># of Records</th>
+                    <th>Error Rate %</th>
+                    <th>Avg. Latency - Lambda 2</th>
+                    <th># of Invocations - Lambda 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>19,150</td>
+                    <td>22%</td>
+                    <td>247 ms</td>
+                    <td>20</td>
+                </tr>
+                <tr>
+                    <td>15,000</td>
+                    <td>0%</td>
+                    <td>176 ms</td>
+                    <td>17</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2># of Workers = 5, Lambda Timeout = 1 min (from 30 sec default)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th># of Records</th>
+                    <th>Error Rate %</th>
+                    <th>Avg. Latency - Lambda 2</th>
+                    <th># of Invocations - Lambda 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>19,150</td>
+                    <td>0%</td>
+                    <td>174 ms</td>
+                    <td>21</td>
+                </tr>
+                <tr>
+                    <td>15,000</td>
+                    <td>0%</td>
+                    <td>176 ms</td>
+                    <td>15</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2># of Workers = 10, Lambda Timeout = 1 min (from 30 sec default)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th># of Records</th>
+                    <th>Error Rate %</th>
+                    <th>Avg. Latency - Lambda 2</th>
+                    <th># of Invocations - Lambda 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>195,800</td>
+                    <td>1 occurrence of error due to broken pipe</td>
+                    <td>209 ms</td>
+                    <td>97</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Conclusion</h2>
+        <p>
+            Scaling DynamoDB for large volumes of records requires a balance between concurrency and careful batch processing.
+            We iteratively adjusted worker counts, timeouts, and payload sizes to find an optimal configuration, ensuring minimal error rates and acceptable latency.
+        </p>
+    </div>
+</body>
+</html>

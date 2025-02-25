@@ -1,43 +1,93 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css");
+
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden; 
+}
+
 body {
     background-color: black;
-    color: white;
+    color: rgb(191, 191, 191);
     font-family: Arial, sans-serif;
+    font-size: 1.25rem;
+    line-height: 2rem;
+}
+
+body a {
+    color: rgba(134, 237, 255, 0.924);
+    text-decoration: none; 
+}
+
+body a:hover {
+    text-decoration: underline;
 }
 
 .blog_container {
     width: 80%;
-    margin: 10% auto;
-    padding: 20px;
+    padding: 5%;
     overflow-y: scroll;
-    height: 50vh;
+    height: 80vh;
     scrollbar-width: thin;
-    scrollbar-color: #555 #222;
+    scrollbar-color: #4d4c4c #ede2e2;
     border: white;
     border-radius: 10px;
+    word-wrap: break-word
+}
+
+.blog_container h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    color: rgb(0, 204, 255);
+}
+
+.blog_container h2 {
+    font-size: 1.5rem;
+    margin-top: 1rem;
+    color: rgb(7, 230, 197);
+}
+
+.blog_container h3 {
+    font-size: 1.25rem;
+    margin-top: 1rem;
+    color: rgb(7, 230, 197);
+}
+
+.blog_container code {
+    font-size: 1rem;
+}
+
+*::-webkit-scrollbar-track {
+    background-color: transparent;
 }
 
 .blog_container::-webkit-scrollbar {
-    width: 8px;
+    width: 4px;
 }
 
 .blog_container::-webkit-scrollbar-thumb {
-    background-color: #555;
+    background-color: #505050;
     border-radius: 10px;
+    height: 10%;  
 }
 
 .blog_container::-webkit-scrollbar-thumb:hover {
-    background-color: #777;
+    background-color: #aaaaaa;
 }
 
-.blog_post_summary {
+
+.blog_summary {
+    margin-left: 5%;
     border-bottom: 1px solid #444;
-    padding: 15px 0;
+    padding: 5% 0;
 }
 
-.blog_post_summary h1 {
-    font-size: 1.5em;
+.blog_summary h1 {
+    font-size: 1.5rem;
     margin-bottom: 5px;
+    color: pink;
 }
+
 
 .blog_summary p {
     font-family: "Inter", sans-serif; /* Choose from recommended fonts */
@@ -52,9 +102,6 @@ body {
 
 /* TOC */
 #table_of_contents {
-    width: 80%;
-    margin: 10% auto 20px auto; 
-    padding: 15px;
     border-bottom: 2px solid rgba(255, 255, 255, 0.6); 
     max-width: 65vw; 
 }
@@ -73,24 +120,30 @@ body {
     margin: 5px 0;
 }
 
-#table_of_contents a {
-    color: lightgray;
-    text-decoration: none;
-    font-size: 1.2em;
+/* Blog Post Table*/
+table {
+    width: 50%;
+    border-collapse: collapse;
+    margin-top: 25px;
+    margin-bottom: 25px;
 }
 
-#table_of_contents a:hover {
-    color: white;
-    text-decoration: underline;
+th, td {
+    padding: 10px;
+    border: 1px solid rgb(252, 247, 1);
+    text-align: center;
+    }
+
+th {
+    color: white; 
+    font-size: 1.1em;
 }
 
-/* Blog Post Links */
-.blog_post_link {
-    color: rgba(255, 234, 238, 0.924);
-    text-decoration: none; 
+td {
+    color: rgb(255, 255, 255);
+    font-size: 0.9em; 
 }
 
-.blog_post_link:hover {
-    text-decoration: underline;
+tr:hover {
+    background-color: rgb(5, 65, 134);
 }
-
