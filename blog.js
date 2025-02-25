@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     const blogIndex = document.getElementById("blog_index");
     const tableOfContents = document.getElementById("table_of_contents");
+    const tocItemList = tableOfContents.querySelector("ul");
     const blogRoot = "blog_posts/";
     
     const blogPosts = [
@@ -23,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
         blogSummary.classList.add("blog_summary");
         blogSummary.innerHTML = `
             <h1><a href="${postUrl}">${post.title}</a></h1>
-            <h2>Last Modified: ${post.date}</h2>
+            <h3>Last Modified: ${post.date}</h3>
             <p>${post.summary}...</p>
         `;
         blogIndex.appendChild(blogSummary);
@@ -31,6 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // Create table of contents entry
         const tocEntry = document.createElement("li");
         tocEntry.innerHTML = `<a href="#${summaryId}">${post.title}</a>`;
-        tableOfContents.appendChild(tocEntry);
+        tocItemList.appendChild(tocEntry);
     });
 });

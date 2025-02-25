@@ -1,5 +1,9 @@
 @import url("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css");
 
+:root {
+    --line-spacing: 1.5rem;
+}
+
 html, body {
     height: 100%;
     margin: 0;
@@ -14,7 +18,6 @@ body {
 }
 
 body a {
-    color: rgba(134, 237, 255, 0.924);
     text-decoration: none; 
 }
 
@@ -36,28 +39,29 @@ body a:hover {
 
 .blog_container h1 {
     font-size: 3rem;
-    margin-bottom: 10px;
     color: rgb(0, 204, 255);
 }
 
 .blog_container h2 {
     font-size: 1.5rem;
-    margin-top: 1rem;
-    color: rgb(7, 230, 197);
+    color: rgb(116, 179, 169);
 }
 
 .blog_container h3 {
     font-size: 1.25rem;
-    margin-top: 1rem;
+    margin-bottom: 1.25rem;
     color: rgb(7, 230, 197);
 }
 
 .blog_container p {
-    line-height: 2rem;
+    line-height: var(--line-spacing);
+    font-size: 1.5rem;
 }
 
-.blog_container code {
+.blog_container pre {
     font-size: 1rem;
+    border: 0.5rem solid teal;
+    margin: 5rem 0;
 }
 
 *::-webkit-scrollbar-track {
@@ -80,15 +84,19 @@ body a:hover {
 
 
 .blog_summary {
-    margin-left: 5%;
-    border-bottom: 1px solid #444;
+    border-bottom: 0.5rem solid rgb(216, 200, 203);
     padding: 5% 0;
 }
 
 .blog_summary h1 {
     font-size: 1.5rem;
     margin-bottom: 5px;
-    color: pink;
+}
+
+.blog_summary h1 a {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+    color: rgb(0, 204, 255)
 }
 
 
@@ -114,28 +122,37 @@ body a:hover {
 
 /* TOC */
 #table_of_contents {
-    border-bottom: 2px solid rgba(255, 255, 255, 0.6); 
-    max-width: 65vw; 
+    border-bottom: 2px solid #eccca2; 
+    padding-bottom: 2rem;
+    max-width: 50vw; 
 }
 
-#table_of_contents h1 {
-    color: lightblue;
-    font-size: 1.8em;
+#table_of_contents h3 {
+    color: 	#f89431;
+    font-size: 1.2em;
 }
 
 #table_of_contents ul {
-    list-style: none;
-    padding: 0;
+    margin-left: 2rem;
 }
 
 #table_of_contents li {
-    margin: 5px 0;
+    list-style: none;
+    line-height: var(--line-spacing);
+    color: #c9a887;
+    margin: 1rem 0;
+}
+
+#table_of_contents a {
+    color: #c9a887;
 }
 
 /* Blog Post Table*/
 table {
     width: 50%;
     border-collapse: collapse;
+    margin-bottom: 5rem;
+    margin-top: auto;
 }
 
 th, td {
@@ -157,3 +174,4 @@ td {
 tr:hover {
     background-color: rgb(5, 65, 134);
 }
+
