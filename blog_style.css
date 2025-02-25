@@ -103,6 +103,15 @@ body a:hover {
     margin-bottom: 15px; /* Adds breathing space between paragraphs */
 }
 
+.post-hero-image {
+    width: 70%;
+    height: 80%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto;
+
+}
+
 /* TOC */
 #table_of_contents {
     border-bottom: 2px solid rgba(255, 255, 255, 0.6); 
