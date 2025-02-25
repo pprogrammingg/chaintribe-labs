@@ -93,14 +93,14 @@ body a:hover {
 
 
 .blog_summary p {
-    font-family: "Inter", sans-serif; /* Choose from recommended fonts */
-    font-size: 18px; /* Comfortable reading size */
-    line-height: 1.6; /* Good spacing between lines */
-    color: white; /* High contrast for dark mode */
-    text-align: justify; /* Keeps text structured */
-    max-width: 90%; /* 90% of the parent container width */
-    margin: 0 auto; /* Center the text */
-    margin-bottom: 15px; /* Adds breathing space between paragraphs */
+    font-family: "Inter", sans-serif;
+    font-size: 18px; 
+    line-height: 1.6; 
+    color: white; 
+    text-align: justify;
+    max-width: 90%; 
+    margin: 0 auto; 
+    margin-bottom: 15px;
 }
 
 .post-hero-image {
