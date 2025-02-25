@@ -161,6 +161,8 @@
             </code>
        </pre>
 
+
+       <h2>Iteration #2 - API GW -> Deserialize and Queue Lambda -> SQS -> Write to DB Lambda -> DynamoDB</h2>
        <p>
             Too many batches to process and 1 Lambda with its 10 workers seem to be much. Generally, Lambdas are meant to be invoked in a multiples.
             If we can somehow send batches to N different Lambda invocations in a queue we can perhaps reduce this bottle necl.
