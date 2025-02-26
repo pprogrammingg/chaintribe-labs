@@ -11,7 +11,7 @@
 <body>
     <div class="blog_container">
         <img class="post-hero-image" src="../images/crowd.jpeg" draggable="false" /> 
-        <h1>High Throughput Processing and Persistence from API Gateway to DynamoDB</h1>
+        <h1>Part 1 - High Throughput Processing and Persistence from API Gateway to DynamoDB</h1>
         <p>
             Recently, we faced the challenge of processing and persisting around 800K records coming in from roughly 40 API Gateway requests over a short period of time.
             The following summary outlines the iterative approach we used to solve this problem.
@@ -119,7 +119,7 @@
             the `hugeness` test...
         </p>
 
-        <h2># of Workers = 10, Lambda Timeout = 30 sec (default)</h2>
+        <h3># of Workers = 10, Lambda Timeout = 10 sec (default)</h3>
         <table>
             <thead>
                 <tr>
@@ -188,7 +188,7 @@
             Notice tables below measure the second Lambda's performance.
         </p>
 
-        <h2># of Workers = 5, Lambda Timeout = 3 sec (default)</h2>
+        <h3># of Workers = 5, Lambda Timeout = 3 sec (default)</h3>
         <table>
             <thead>
                 <tr>
@@ -222,7 +222,7 @@
             What if we increased the timeout to 1 min?
         </p>
 
-        <h2># of Workers = 5, Lambda Timeout = 1 min (from 3 sec default)</h2>
+        <h3># of Workers = 5, Lambda Timeout = 1 min (from 3 sec default)</h3>
         <table>
             <thead>
                 <tr>
@@ -250,7 +250,7 @@
 
         <p>Looks much better now, now let's send 10 requests, each containing 19,150 records ....  </p>
 
-        <h2># of Workers = 10, Lambda Timeout = 1 min (from 3 sec default)</h2>
+        <h3># of Workers = 10, Lambda Timeout = 1 min (from 3 sec default)</h3>
         <table>
             <thead>
                 <tr>
@@ -271,14 +271,14 @@
         </table>
 
         <p>
-            Not too bad; however, that `1 broken pipe` error makes everyone nervous, ... we can not be sure whether it eventually ended up persisting the record. 
+            Not too bad; however, that `1 broken pipe` error makes everyone nervous... we can not be sure whether it eventually ended up persisting the record. 
             And there is no way one should spend time scanning DynamoDB for missing records (DynamoDB has no `COUNT` like a regular RDBMS, 
             so finding missing records is indeed difficult). This is definitely a great topic for observability and setting up the right 
             alarms in the system, which we will probably tackle later.
         </p>
         
         <p>
-            In Part 2, we will explore some other optimization techniques to crank up our throughput with 0 errors:
+            In <a href="./heavy-processing-api-gw-ddb-part2.html">Part 2</a>, we will explore some other optimization techniques to crank up our throughput with 0 errors:
             <ul>
                 <li>SQS can introduce new messages with some delay configured via `Delivery Delay`.</li>
                 <li>The Queueing process (i.e. Lambda 1) can introduce a random short delay before sending each message.

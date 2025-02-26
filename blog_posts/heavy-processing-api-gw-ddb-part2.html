@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Post</title>
+    <link rel="stylesheet" href="../blog_style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="../highlight.js" defer></script>
+</head>
+<body>
+    <div class="blog_container">
+        <img class="post-hero-image" src="../images/balls_queue.jpeg" draggable="false" /> 
+        <h1>Part 2 - High Throughput Processing and Persistence from API Gateway to DynamoDB</h1>
+        <p>
+            In <a href="./heavy-processing-api-gw-ddb-part1.html">Part 1</a> we went from 3,400 records 
+            using the design: 
+            <pre>
+                <code>API Gateway -> Lambda -> DybnamoDB</code>
+            </pre>
+            to 19,150 records by simply splitting the one Lambda to 2 Lambdas with a SQS in between:
+            <pre>
+                <code>API Gateway" -> Deserilization/Processing Lambda -> SQS -> DB write Lambda -> DynamoDB</code> 
+            </pre>
+
+            Simultaneously, Lambda timeout was increased from 10 seconds to 1 min to allow
+            lost connection retries from DynamoDB client.
+
+            So far 191,500 recrods persisted with 1 error regarding DynamoDB connection issues is not bad.
+            But can we do better?
+        </p>
+
+        <p>
+            Next, one more aspect is going to be changed and performance will be measured for... and that is:
+            <ul>
+                <li>Delivery Delay parameter in the SQS</li>
+            </ul>
+        </p>
+
+        <h2>Delivery Delay parameter in the SQS</h2>
+        <p>
+            <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-delay-queues.html">
+                Delivery delay
+            </a> specifies "a delay period from time message arrives on SQS to the time it is visible".
+
+            Using terraform we add this paramter starting from 5 seconds...
+
+            <pre>
+                <code>
+                    resource "aws_sqs_queue" "business_records_sqs" {
+                        name                      = "business-records-sqs"
+                        message_retention_seconds = 1209600 # Retain messages for up to 14 days (max)
+                      
+                        delay_seconds  = 5 # delay_seconds, once delivered, delay displaying the message
+                      
+                        # Dead Letter Queue redrive policy
+                        redrive_policy = jsonencode({
+                          deadLetterTargetArn = aws_sqs_queue.business_records_dlq.arn
+                          maxReceiveCount     = 5 # Number of attempts before moving to DLQ
+                        })
+                      }
+                </code>
+            </pre>
+        </p>
+
+        <h3>SQS Delivery Delay = 5 sec, Lambda 2: # of Workers = 10, Lambda 2 Timeout = 1 min</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th># of Records</th>
+                    <th>Error Rate %</th>       
+                    <th>Avg. Latency - Lambda 2</th>
+                    <th>Max # of Concurrent Invocations - Lambda 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        786,175 recrods: 41 requests * 19,164 records with each request roughly 1/2 sec apart
+                    </td>
+                    <td>0</td>
+                    <td>141 ms</td>
+                    <td>22</td>
+                </tr>
+                <tr>
+                    <td>
+                        958200 recrods: 50 requests * 19,164 records with each request roughly 1/2 sec apart
+                    </td>
+                    <td>0</td>
+                    <td>169 ms</td>
+                    <td>21/td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            Alright - seems like the throughput requirements were achieved. Remember originally we wanted roughly 800K
+            records to be persisted with no errors.
+            Notice for Lambda 2, max number of concurrent executions was 22 and avg time it took was 141 ms (first measurement)
+            and 169 ms (second measurement) which is even less than 200 ms (by ~ 33% on avg) from 191,500 recrods tried in 
+            <a href="./heavy-processing-api-gw-ddb-part1.html">Part 1</a>. In future parts, we have to address the Mr. Ele Phant De Room... 
+            What if some batch fails to persist? How do we raise alert, know exactly which batch? How do we retry and recover? 
+            All and more hopefully will be covered another time...
+        </p>
+
+        <p> 
+            Conclusion:
+            So generally looks like queueing a chaotic amount of messages coming in and spacing them helps the throughput a lot.
+            Reminds the self how a rush of ideas fries the brain, but with proper scheduling and putting some gaps in between
+            everything becomes more enjoyable.
+
+            The wise guys say that it not just the sound notes that make music - it is also the lack of sound in between.
+        </p>
+    </div>
+</body>
+</html>

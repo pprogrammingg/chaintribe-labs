@@ -1,7 +1,7 @@
 @import url("https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css");
 
 :root {
-    --line-spacing: 1.5rem;
+    --line-spacing: 1.85rem;
 }
 
 html, body {
@@ -14,11 +14,12 @@ body {
     background-color: black;
     color: rgb(191, 191, 191);
     font-family: Arial, sans-serif;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
 }
 
 body a {
     text-decoration: none; 
+    color: sandybrown;
 }
 
 body a:hover {
@@ -43,15 +44,23 @@ body a:hover {
 }
 
 .blog_container h2 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     color: rgb(116, 179, 169);
 }
 
 .blog_container h3 {
     font-size: 1.25rem;
     margin-bottom: 1.25rem;
+    margin-top: 3rem;
     color: rgb(7, 230, 197);
 }
+
+.blog_container h3.last-modified-date {
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+    color: #4989a8;
+}
+
 
 .blog_container p {
     line-height: var(--line-spacing);
@@ -60,8 +69,8 @@ body a:hover {
 
 .blog_container pre {
     font-size: 1rem;
-    border: 0.5rem solid teal;
-    margin: 5rem 0;
+    border: 0.15rem solid teal;
+    margin:2.5rem 0;
 }
 
 *::-webkit-scrollbar-track {
@@ -151,8 +160,9 @@ body a:hover {
 table {
     width: 50%;
     border-collapse: collapse;
-    margin-bottom: 5rem;
+    margin-bottom: 2.5rem;
     margin-top: auto;
+    font-size: 1rem;
 }
 
 th, td {

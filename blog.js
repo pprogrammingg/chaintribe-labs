@@ -7,11 +7,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const blogPosts = [
         { 
             path: "heavy-processing-api-gw-ddb-part1.html", 
-            title: "High Throughput Processing and Persistence from API Gateway to DynamoDB", 
+            title: "Part 1 - High Throughput Processing and Persistence from API Gateway to DynamoDB", 
             date: "2025-02-25", 
             summary: `Recently, we faced the challenge of processing and persisting around 800K"  
                       records coming in from roughly 40 API Gateway requests over a short period of time.
                       The following summary outlines the iterative approach we used to solve this problem`
+        },
+        { 
+            path: "heavy-processing-api-gw-ddb-part2.html", 
+            title: "Part 2 - High Throughput Processing and Persistence from API Gateway to DynamoDB", 
+            date: "2025-02-25", 
+            summary: `in Part 1 we went from 3,400 records using the design: API Gateway -> Lambda -> DybnamoDB`
         }
     ];
     
@@ -24,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
         blogSummary.classList.add("blog_summary");
         blogSummary.innerHTML = `
             <h1><a href="${postUrl}">${post.title}</a></h1>
-            <h3>Last Modified: ${post.date}</h3>
+            <h3 class="last-modified-date">Last Modified: ${post.date}</h3>
             <p>${post.summary}...</p>
         `;
         blogIndex.appendChild(blogSummary);
