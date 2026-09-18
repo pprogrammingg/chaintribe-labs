@@ -1,0 +1,58 @@
+{
+  "chain": [
+    { "id": "dex", "label": "Dex" },
+    { "id": "loyalty", "label": "Loyalty" },
+    { "id": "experience", "label": "Experience" }
+  ],
+  "work": {
+    "hint": "Drag the drawer left or right. Click a card to open it."
+  },
+  "projects": [
+    {
+      "id": "dex",
+      "title": "Decentralized Exchange",
+      "stack": "Radix · Scrypto · React",
+      "image": "images/indigenous_exchange3.jpeg",
+      "alt": "Illustrated exchange beside a river, used as the mark for the DEX",
+      "summary": "A Radix exchange with three recorded flows: connect an account, add liquidity, and swap. Components are Scrypto, the interface is React, and the front end acknowledges the Moralis DEX reference.",
+      "body": "data/posts/radix-dex.html",
+      "links": [
+        { "label": "Radix docs", "href": "https://docs.radixdlt.com/docs" },
+        { "label": "Moralis DEX reference", "href": "https://github.com/IAmJaysWay/dexFinal" }
+      ],
+      "videos": [
+        { "youtubeId": "7EkfFd95keE", "title": "Part 1 — Connecting the site to a Radix account" },
+        { "youtubeId": "jc4bhwMjR5Q", "title": "Part 2 — Add liquidity" },
+        { "youtubeId": "Ko5G0Vdh4i4", "title": "Part 3 — Swap" }
+      ]
+    },
+    {
+      "id": "loyalty",
+      "title": "Loyalty",
+      "stack": "Radix · Scrypto · React",
+      "image": "images/indigenous_loyalty.jpeg",
+      "alt": "Illustrated gathering, used as the mark for the loyalty project",
+      "summary": "Membership cards live on Radix, and points come from finished tasks and challenges rather than a private spreadsheet. The program can show its own history, and the interface acknowledges RDX Works’ Gumball Club.",
+      "body": "data/posts/ledger-loyalty.html",
+      "links": [
+        { "label": "Radix docs", "href": "https://docs.radixdlt.com/docs" },
+        { "label": "RDX Works Gumball Club", "href": "https://github.com/radixdlt/gumball-club/" }
+      ],
+      "videos": []
+    },
+    {
+      "id": "experience",
+      "title": "More Experience",
+      "stack": "Northern Labs · Coinbase Commerce · Checkout.com",
+      "image": "images/indigenous_experience.jpeg",
+      "alt": "Illustrated scene used as the mark for the payments work",
+      "summary": "At Northern Labs I took a payment service through its full lifecycle for both crypto and card payments. It spoke to Coinbase Commerce and Checkout.com, and the same stretch included onboarding and mentoring.",
+      "body": "data/posts/northern-labs-payments.html",
+      "links": [
+        { "label": "Northern Labs", "href": "https://www.northernlabs.ca" },
+        { "label": "LinkedIn", "href": "https://www.linkedin.com/in/pnajafi" }
+      ],
+      "videos": []
+    }
+  ]
+}

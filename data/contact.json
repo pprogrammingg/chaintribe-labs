@@ -1,0 +1,12 @@
+{
+  "chain": [
+    { "id": "reach", "label": "Reach" },
+    { "id": "collaborate", "label": "Work" }
+  ],
+  "reach": {},
+  "collaborate": {
+    "eyebrow": "How I work",
+    "title": "Practical ledgers, written down.",
+    "body": "ChainTribe exists to put immutable ledgers to practical use: transactions that stay inspectable, and collaborations that adopt that model without the ceremony. If that is the work, write. The LinkedIn page holds the longer record — fifteen years and more — when a résumé is what you need first."
+  }
+}

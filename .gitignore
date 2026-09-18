@@ -1,1 +1,8 @@
 .DS_Store
+dev/output/
+dist/
+build/
+out/
+coverage/
+test-results/
+*.log

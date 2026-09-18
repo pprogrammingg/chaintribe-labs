@@ -1,0 +1,21 @@
+---
+description: Plain HTML, CSS, and JavaScript only — no frameworks
+alwaysApply: true
+---
+
+# Plain HTML, CSS, and JavaScript
+
+This site is static. Do not add a framework, bundler, UI kit, or npm dependency.
+
+- Pages: `.html` files with shared chrome mounted from `js/`.
+- Look: tokens and shared components in `css/`. A page stylesheet only for that page's layout.
+- Behavior: ES modules in `js/`. Pure logic (paging, pan math) has no DOM so `dev/check.mjs` can import it.
+- Material: copy, catalogs, and media indexes live in `data/`. Markup renders that data. Do not hard-code a second copy of a profile, essay, or contact fact in a script.
+
+```
+# ❌
+import React from "react";
+
+# ✅
+const posts = await fetchJson("data/posts.json");
+```

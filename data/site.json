@@ -1,0 +1,15 @@
+{
+  "practice": "ChainTribe",
+  "name": "P. Najafi",
+  "role": "Software engineer",
+  "nav": [
+    { "id": "profile", "href": "index.html", "label": "Profile" },
+    { "id": "blog", "href": "blog.html", "label": "Blog" },
+    { "id": "contact", "href": "contact.html", "label": "Contact" }
+  ],
+  "contact": {
+    "email": "pprogrammingg@gmail.com",
+    "linkedin": "https://www.linkedin.com/in/pnajafi",
+    "linkedinLabel": "LinkedIn"
+  }
+}

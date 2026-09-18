@@ -1,0 +1,24 @@
+---
+description: Keep generated output out of the index and out of source
+alwaysApply: true
+---
+
+# Do not index output artifacts
+
+Generated files are not source. Do not read them to learn the project, do not edit them, and do not commit them.
+
+They stay out of the Cursor index via `.cursorindexingignore` and out of git via `.gitignore`:
+
+- `dev/output/` — check screenshots and logs
+- `dist/`, `build/`, `out/`, `.output/`, `coverage/`, `test-results/`
+- `*.log`, `.DS_Store`
+
+Commands that write reports or screenshots must write under `dev/output/`. If a new output kind appears, add it to both ignore files in the same change.
+
+```
+# ❌ commit or patch a generated file
+git add dev/output/profile.png
+
+# ✅ regenerate ignored output, then edit source
+node dev/check.mjs
+```

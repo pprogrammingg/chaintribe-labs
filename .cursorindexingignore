@@ -1,0 +1,11 @@
+# Generated output is not source. Keep it out of the Cursor index.
+dev/output/
+dist/
+build/
+out/
+.output/
+coverage/
+test-results/
+playwright-report/
+*.log
+.DS_Store

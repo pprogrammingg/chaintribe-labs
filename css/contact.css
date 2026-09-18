@@ -1,0 +1,40 @@
+.reach-list {
+  list-style: none;
+  margin: 1.8rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.1rem;
+  max-width: 40rem;
+}
+
+.reach-list a {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 560;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  text-decoration: none;
+  line-height: 1.15;
+}
+
+.reach-list a:hover {
+  color: var(--brass);
+}
+
+.reach-list span {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+.note {
+  max-width: 38rem;
+  font-family: var(--font-read);
+  font-size: 1.2rem;
+  line-height: 1.65;
+  color: var(--ink);
+}

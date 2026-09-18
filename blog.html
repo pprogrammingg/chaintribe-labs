@@ -1,19 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog</title>
-    <link rel="stylesheet" href="blog_style.css">
-    <script src="./blog.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blog — ChainTribe</title>
+  <meta name="description" content="Technical notes on high-throughput persistence, ledgers, and payment systems.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,560;1,9..144,500&family=Outfit:wght@380;450;560&family=Source+Serif+4:opsz,wght@8..60,460;8..60,560&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/site.css">
 </head>
-<body>
-    <div class="blog_container" id="blog_index">
-        <div id="table_of_contents">
-            <h3>Table of Contents</h3>
-            <ul>
-            </ul>
-        </div>
+<body data-page="blog">
+  <a class="skip" href="#posts">Skip to notes</a>
+  <header class="site-header" id="site-header"></header>
+  <aside class="toc" id="toc" data-open="true">
+    <div class="toc-bar">
+      <button type="button" id="toc-toggle" aria-expanded="true" aria-controls="toc-panel">Minimize</button>
+      <span class="toc-count" id="toc-count"></span>
     </div>
+    <div class="toc-panel" id="toc-panel">
+      <ul class="toc-list" id="toc-list"></ul>
+      <p class="toc-more" id="toc-more">Scroll for more titles.</p>
+    </div>
+  </aside>
+  <main class="blog-column" id="page">
+    <div id="posts"></div>
+    <noscript><p class="noscript">The notes load from data files and need JavaScript.</p></noscript>
+  </main>
+  <script type="module" src="js/blog.js"></script>
 </body>
 </html>

@@ -1,0 +1,103 @@
+/* HTML pages must load the matching Google fonts in <head>.
+   Fraunces (display), Outfit (UI), Source Serif 4 (long reading). */
+
+:root {
+  --bg: #0c0d0b;
+  --bg-elev: #161814;
+  --ink: #ece7dc;
+  --muted: #b7b0a4;
+  --line: rgba(236, 231, 220, 0.14);
+  --brass: #e4d3ae;
+  --brass-deep: #b08958;
+  --paper: #f3eee6;
+  --paper-ink: #1f1c17;
+  --paper-muted: #5e574c;
+  --paper-line: rgba(31, 28, 23, 0.12);
+  --font-display: "Fraunces", "Iowan Old Style", Palatino, serif;
+  --font-ui: "Outfit", "Avenir Next", "Segoe UI", sans-serif;
+  --font-read: "Source Serif 4", "Iowan Old Style", Palatino, serif;
+  --header-h: 4.25rem;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --content: 72rem;
+  --measure: 66ch;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse 80% 42% at 50% -8%, rgba(176, 137, 88, 0.16), transparent 55%),
+    var(--bg);
+  font-family: var(--font-ui);
+  font-weight: 400;
+  line-height: 1.5;
+  font-size: 1.05rem;
+}
+
+body:not(.is-ready) main {
+  opacity: 0;
+}
+
+body.is-ready main {
+  opacity: 1;
+  transition: opacity 0.35s var(--ease);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+  -webkit-user-drag: none;
+}
+
+a {
+  color: var(--brass);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: #fff8e8;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  background: var(--paper);
+  color: var(--paper-ink);
+  padding: 0.5rem 0.8rem;
+  z-index: 80;
+}
+
+.skip:focus {
+  top: 0.6rem;
+}

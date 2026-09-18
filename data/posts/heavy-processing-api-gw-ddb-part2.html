@@ -1,0 +1,38 @@
+<p>Part 1 moved the design from one Lambda writing straight to DynamoDB to a split: deserialize, enqueue, write. The timeout on the writer moved from ten seconds, then three, to one minute, so a dropped DynamoDB connection could retry. At 191,500 records there was one broken-pipe error. The original target was still about 800,000, with none.</p>
+<p>The next single change was the queue’s delivery delay.</p>
+<h2>Delivery delay</h2>
+<p>A <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-delay-queues.html">delay queue</a> holds a message for a set period after it arrives, then makes it visible. The writers cannot all wake up in the same instant, because the messages are not all visible in the same instant. In Terraform that is one argument:</p>
+<pre><code class="language-hcl">resource "aws_sqs_queue" "business_records_sqs" {
+  name                      = "business-records-sqs"
+  message_retention_seconds = 1209600
+  delay_seconds             = 5
+
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.business_records_dlq.arn
+    maxReceiveCount     = 5
+  })
+}</code></pre>
+<p>Five seconds is not a large number. It is a gap. The writer still ran ten workers, with a one-minute timeout.</p>
+<h3>Five-second delay, ten workers, one-minute timeout</h3>
+<table>
+  <thead>
+    <tr><th>Records</th><th>Error rate</th><th>Writer latency</th><th>Peak concurrent writers</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>786,175 — 41 requests of 19,164, about one to two seconds apart</td>
+      <td>0</td>
+      <td>141 ms</td>
+      <td>22</td>
+    </tr>
+    <tr>
+      <td>958,200 — 50 requests of 19,164, about one to two seconds apart</td>
+      <td>0</td>
+      <td>169 ms</td>
+      <td>21</td>
+    </tr>
+  </tbody>
+</table>
+<p>That met the original mark. About 800,000 records, no errors in the measurement. Average writer latency was 141 milliseconds on the first run and 169 on the second — about a third under the 209 milliseconds seen at 191,500 records in part 1, with a peak of 22 concurrent writers.</p>
+<p>The rest of the room is still unfurnished. A failed batch has to raise a specific alarm, name the batch, and retry without a human scanning a table. That is a later note, not a footnote on a green cell.</p>
+<p>What the measurement supports is narrower, and enough: a rush of messages, spaced, is a different system from a rush of messages. A gap is not wasted time. It is how the writers stay attached to DynamoDB long enough to finish.</p>

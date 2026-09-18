@@ -1,0 +1,11 @@
+<p>In the first persistence attempt, four percent of a 19,163-record write failed. The function log, opened as a stream and scrolled by hand, did not say why. The same events, queried, did.</p>
+<p>CloudWatch Logs is a firehose. Insights is a question you can ask it. The useful query was not clever:</p>
+<pre><code>fields @timestamp, @message
+| filter @message like /error/
+| sort @timestamp desc
+| limit 50</code></pre>
+<p>That was enough to surface the line the stream had buried:</p>
+<pre><code>DEBUG client connection error: connection error: Connection reset by peer (os error 104)</code></pre>
+<p>Ten workers in one Lambda were resetting each other’s connections to DynamoDB. The design change — fewer workers, then a queue between a reader and a writer — came from that sentence, not from a hunch about “Lambda best practice.”</p>
+<p>Two habits came out of it. First, a failure rate in a table is not a diagnosis. Second, a log stream is the wrong first tool when many functions are writing at once. Start with a filter and a limit. Name the error you are looking for. Then change one thing in the design, and measure again.</p>
+<p>The broken pipe that showed up later, once, at 191,500 records, is the same class of problem. It will not be readable if the only plan is to open a stream and hope. The alarm has to name the batch. The note on spacing is <a href="#heavy-processing-api-gw-ddb-part2">part 2</a>.</p>

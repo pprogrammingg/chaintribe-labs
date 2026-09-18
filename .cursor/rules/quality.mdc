@@ -1,0 +1,18 @@
+---
+description: Reuse, consistent style, and a check before pages are done
+alwaysApply: true
+---
+
+# Quality bar
+
+- Second use of a pattern goes in `js/` or `css/`, not a copy. Chrome, cues, video frames, and the elastic thumbnail pan are shared.
+- Use existing tokens (type, color, spacing, focus, cues). Do not invent a one-off palette or type stack per page.
+- Pages work with keyboard, `prefers-reduced-motion`, and a narrow viewport. Do not trap scroll (`overflow: hidden` on `body`).
+- Blog prose is publication-ready: complete sentences, consistent tense, no typos, short paragraphs, one idea per beat.
+- After changing HTML, CSS, JS, or `data/`, run `node dev/check.mjs` and fix failures before finishing. Refactor while the change is small: one job per module, no dead markup, no page-specific fork of shared chrome.
+
+```
+# ❌ finish after a visual tweak with no check
+# ✅
+node dev/check.mjs
+```
