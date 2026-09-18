@@ -1,38 +1,58 @@
-<p>Part 1 moved the design from one Lambda writing straight to DynamoDB to a split: deserialize, enqueue, write. The timeout on the writer moved from ten seconds, then three, to one minute, so a dropped DynamoDB connection could retry. At 191,500 records there was one broken-pipe error. The original target was still about 800,000, with none.</p>
-<p>The next single change was the queue’s delivery delay.</p>
-<h2>Delivery delay</h2>
-<p>A <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-delay-queues.html">delay queue</a> holds a message for a set period after it arrives, then makes it visible. The writers cannot all wake up in the same instant, because the messages are not all visible in the same instant. In Terraform that is one argument:</p>
+<p>In <a href="blog.html#heavy-processing-api-gw-ddb-part1">Part 1</a> we went from 3,400 records using the design:</p>
+<pre><code>API Gateway → Lambda → DynamoDB</code></pre>
+<p>to 19,150 records by simply splitting the one Lambda into 2 Lambdas with an SQS in between:</p>
+<pre><code>API Gateway → Deserialization/Processing Lambda → SQS → DB write Lambda → DynamoDB</code></pre>
+<p>Simultaneously, the Lambda timeout was increased from 10 seconds to 1 min to allow lost-connection retries from the DynamoDB client.</p>
+<p>So far, 191,500 records persisted with 1 error regarding DynamoDB connection issues is not bad. But can we do better?</p>
+
+<p>Next, one more aspect is going to be changed and performance will be measured for… and that is:</p>
+<ul>
+  <li>Delivery Delay parameter in the SQS</li>
+</ul>
+
+<h2>Delivery Delay parameter in the SQS</h2>
+<p><a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-delay-queues.html">Delivery delay</a> specifies “a delay period from the time a message arrives on SQS to the time it is visible.”</p>
+<p>Using Terraform we add this parameter starting from 5 seconds…</p>
 <pre><code class="language-hcl">resource "aws_sqs_queue" "business_records_sqs" {
   name                      = "business-records-sqs"
-  message_retention_seconds = 1209600
-  delay_seconds             = 5
+  message_retention_seconds = 1209600 # Retain messages for up to 14 days (max)
 
+  delay_seconds = 5 # delay_seconds, once delivered, delay displaying the message
+
+  # Dead Letter Queue redrive policy
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.business_records_dlq.arn
-    maxReceiveCount     = 5
+    maxReceiveCount     = 5 # Number of attempts before moving to DLQ
   })
 }</code></pre>
-<p>Five seconds is not a large number. It is a gap. The writer still ran ten workers, with a one-minute timeout.</p>
-<h3>Five-second delay, ten workers, one-minute timeout</h3>
+
+<h3>SQS Delivery Delay = 5 sec, Lambda 2: # of workers = 10, Lambda 2 timeout = 1 min</h3>
 <table>
   <thead>
-    <tr><th>Records</th><th>Error rate</th><th>Writer latency</th><th>Peak concurrent writers</th></tr>
+    <tr>
+      <th># of records</th>
+      <th>Error rate %</th>
+      <th>Avg. latency — Lambda 2</th>
+      <th>Max # of concurrent invocations — Lambda 2</th>
+    </tr>
   </thead>
   <tbody>
     <tr>
-      <td>786,175 — 41 requests of 19,164, about one to two seconds apart</td>
+      <td>786,175 records: 41 requests × 19,164 records with each request roughly 1/2 sec apart</td>
       <td>0</td>
       <td>141 ms</td>
       <td>22</td>
     </tr>
     <tr>
-      <td>958,200 — 50 requests of 19,164, about one to two seconds apart</td>
+      <td>958,200 records: 50 requests × 19,164 records with each request roughly 1/2 sec apart</td>
       <td>0</td>
       <td>169 ms</td>
       <td>21</td>
     </tr>
   </tbody>
 </table>
-<p>That met the original mark. About 800,000 records, no errors in the measurement. Average writer latency was 141 milliseconds on the first run and 169 on the second — about a third under the 209 milliseconds seen at 191,500 records in part 1, with a peak of 22 concurrent writers.</p>
-<p>The rest of the room is still unfurnished. A failed batch has to raise a specific alarm, name the batch, and retry without a human scanning a table. That is a later note, not a footnote on a green cell.</p>
-<p>What the measurement supports is narrower, and enough: a rush of messages, spaced, is a different system from a rush of messages. A gap is not wasted time. It is how the writers stay attached to DynamoDB long enough to finish.</p>
+
+<p>Alright — seems like the throughput requirements were achieved. Remember originally we wanted roughly 800K records to be persisted with no errors. Notice for Lambda 2, the max number of concurrent executions was 22 and the avg time it took was 141 ms (first measurement) and 169 ms (second measurement), which is even less than 200 ms (by ~33% on avg) from the 191,500 records tried in <a href="blog.html#heavy-processing-api-gw-ddb-part1">Part 1</a>. In future parts, we have to address the elephant in the room… What if some batch fails to persist? How do we raise an alert, and know exactly which batch? How do we retry and recover? All that and more will hopefully be covered another time…</p>
+
+<p><strong>Conclusion:</strong> So generally it looks like queueing a chaotic amount of messages coming in and spacing them helps the throughput a lot. Reminds myself how a rush of ideas fries the brain, but with proper scheduling and putting some gaps in between, everything becomes more enjoyable.</p>
+<p>The wise guys say that it is not just the sound notes that make music — it is also the lack of sound in between.</p>

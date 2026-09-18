@@ -12,6 +12,7 @@ import {
   pageSlice,
 } from "../js/progressive.js";
 import { REST_SHIFT, dragToShift } from "../js/elastic-pan.js";
+import { panTransform } from "../js/rail.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "dev/output");
@@ -38,6 +39,8 @@ function unit() {
   assert(dragToShift(80, 200, 200) < REST_SHIFT, "dragging left moves the photo left, revealing its right side");
   assert(dragToShift(320, 200, 200) > REST_SHIFT, "dragging right moves the photo right, revealing its left side");
   assert(dragToShift(200, 200, 200) === REST_SHIFT, "no drag stays centered, with both edges cropped");
+  assert(panTransform(0).includes("-28.571"), `rail rest shows the right side, got ${panTransform(0)}`);
+  assert(panTransform(-100) === "translateX(0.000%)", `rail end shows the left side, got ${panTransform(-100)}`);
 }
 
 function files() {
@@ -53,10 +56,23 @@ function files() {
     assert(fs.existsSync(path.join(ROOT, item.href)), `nav target missing: ${item.href}`);
   }
     assert(site.nav.at(-1).id === "contact", "contact is the last nav item");
-    const projectEssays = ["radix-dex", "ledger-loyalty", "northern-labs-payments"];
+    const projectEssays = ["radix-dex", "ledger-loyalty"];
     for (const file of projectEssays) {
       const body = fs.readFileSync(path.join(ROOT, "data/posts", `${file}.html`), "utf8");
       assert((body.match(/<p\b/g) || []).length === 2, `${file} stays at two paragraphs`);
+    }
+    const experience = JSON.parse(fs.readFileSync(path.join(ROOT, "data/posts.json"), "utf8"))
+      .posts.find((post) => post.id === "experience");
+    const employers = JSON.parse(fs.readFileSync(path.join(ROOT, "data/employers.json"), "utf8"));
+    assert(experience?.employers?.join("|") === "northern-labs|loyaltyone|ericsson", "experience lists prior employers");
+    assert(employers["northern-labs"]?.highlights?.length >= 5, "Northern Labs drawer carries the engagement highlights");
+    assert(employers["loyaltyone"]?.highlights?.length >= 2, "LoyaltyOne drawer carries the engagement highlights");
+    assert(employers["ericsson"]?.highlights?.length >= 2, "Ericsson drawer carries the engagement highlights");
+    assert(!/Coinbase Commerce and Checkout\.com\. The same stretch/.test(fs.readFileSync(path.join(ROOT, "data/posts/northern-labs-payments.html"), "utf8")), "old Northern Labs payment blurb is gone");
+    assert(!/ChainTribe/.test(JSON.stringify(employers)), "employer drawers do not mention ChainTribe");
+    for (const id of experience.employers) {
+      assert(employers[id]?.logo && fs.existsSync(path.join(ROOT, employers[id].logo)), `employer logo missing for ${id}`);
+      assert((employers[id]?.highlights || []).every((item) => item.split(/\s+/).length <= 8), `${id} highlights stay short`);
     }
   assert(!fs.existsSync(path.join(ROOT, "about.html")), "about.html should not remain; profile is the landing page");
   const css = fs.readFileSync(path.join(ROOT, "css/tokens.css"), "utf8");
@@ -72,6 +88,8 @@ function mime(file) {
     ".json": "application/json",
     ".jpeg": "image/jpeg",
     ".jpg": "image/jpeg",
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
   }[ext] || "application/octet-stream";
 }
 
@@ -204,14 +222,26 @@ async function browser(origin, debugPort) {
         pad: { x: pad.left + 24, y: pad.top + 20 }
       });
     })()`));
+    const restTx = Number(await evalValue(profile, `(() => {
+      const m = getComputedStyle(document.querySelector('.rail-image')).transform.match(/matrix\\([^,]+,[^,]+,[^,]+,[^,]+,\\s*([^,]+)/);
+      return m ? Number(m[1]) : NaN;
+    })()`));
     await profile.send("Input.dispatchMouseEvent", { type: "mousePressed", x: box.handle.x, y: box.handle.y, button: "left", clickCount: 1 });
     await profile.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: box.handle.x - 360, y: box.handle.y, button: "left", buttons: 1 });
     await profile.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: box.handle.x - 520, y: box.handle.y, button: "left", buttons: 1 });
+    await new Promise((r) => setTimeout(r, 1100));
     const during = JSON.parse(await evalValue(profile, `(() => {
       const track = document.getElementById('image-track');
-      return JSON.stringify({ dragged: track.dataset.percentage });
+      const img = document.querySelector('.rail-image');
+      const m = getComputedStyle(img).transform.match(/matrix\\([^,]+,[^,]+,[^,]+,[^,]+,\\s*([^,]+)/);
+      return JSON.stringify({
+        dragged: track.dataset.percentage,
+        tx: m ? Number(m[1]) : null,
+        transform: getComputedStyle(img).transform
+      });
     })()`));
     assert(Number.parseFloat(during.dragged) < 0, `dragging the drawer handle should pan the rail, got ${during.dragged}`);
+    assert(during.tx != null && during.tx > restTx + 20, `inner photo should slide inside the frame, rest=${restTx} now=${during.tx}`);
     await profile.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: box.handle.x - 520, y: box.handle.y, button: "left", clickCount: 1 });
     await new Promise((r) => setTimeout(r, 1300));
     const pan = JSON.parse(await evalValue(profile, `(() => {
@@ -256,6 +286,8 @@ async function browser(origin, debugPort) {
   try {
     await deep.send("Page.navigate", { url: `${origin}/blog.html?check=1#dex` });
     await waitFor(deep, "location.hash === '#dex' && !!document.getElementById('dex')", "dex essay loaded from the profile link");
+    assert(await evalValue(deep, "window.__site.loaded().join() === 'dex'") === true, "rail deep link loads only the matched essay first");
+    assert(await evalValue(deep, "document.getElementById('dex').classList.contains('is-current')") === true, "matched essay is marked current");
   } finally {
     deep.close();
   }

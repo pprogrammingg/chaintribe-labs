@@ -1,91 +1,216 @@
-<p>The constraint was blunt. Persist about 800,000 records, arriving as roughly 40 API Gateway requests, in one to two minutes. Each request could carry about 20,000 records, and those requests could land within twenty seconds of one another. Cost had to stay low. There was no extra budget for a cluster that sat idle the rest of the day.</p>
-<p>The first design was the one most people reach for: API Gateway, one Lambda, DynamoDB.</p>
-<h2>One Lambda, ten workers</h2>
-<p>Inside that function the work was ordinary:</p>
-<ol>
-  <li>Deserialize the body into a <code>BusinessRecord</code>.</li>
-  <li>Split the list into chunks of 25. That is the maximum <code>BatchWriteItem</code> will take in one call.</li>
-  <li>Write each chunk asynchronously.</li>
-  <li>Inspect the result of each worker.</li>
-  <li>Return success. Better error reporting was left for later, which we paid for.</li>
-</ol>
-<pre><code class="language-rust">let batches: Vec&lt;Vec&lt;BusinessRecord&gt;&gt; = business_record_list
-    .chunks(25)
-    .map(|chunk| chunk.to_vec())
-    .collect();
+<p>Recently we faced the challenge of processing and persisting around 800K records coming in from roughly 40 API Gateway requests over a short period of time. The following summary outlines the iterative approach we used to solve this problem.</p>
 
-stream::iter(batches.into_iter().map(|batch| {
+<p>Constraints:</p>
+<ul>
+  <li>Obviously, costs must be as low as possible.</li>
+  <li>Handle 800K records in one to two minutes.</li>
+  <li>Manage 40 requests of 20K each, coming within 20 seconds.</li>
+</ul>
+
+<h2>Iteration #1 — API Gateway → single Lambda → DynamoDB</h2>
+<p>A single Lambda processing and writing to DynamoDB with concurrency seemed like a great starting point. Inside the Lambda, the following steps are performed:</p>
+<ol>
+  <li>Deserialize records into our Rust business object <code>BusinessRecord</code>.</li>
+  <li>Divide the list of <code>BusinessRecord</code> into chunks of 25 — this is the maximum number of rows that can be written to DynamoDB in one shot using <code>BatchWriteItem</code>.</li>
+  <li>For each chunk, asynchronously write it to DynamoDB.</li>
+  <li>Check the result for each asynchronous write (check each worker) in <code>for_each_concurrent</code>.</li>
+  <li>Finally, return success, regardless of the outcome. In the future, we may need better error handling and messaging to the user (see later sections).</li>
+</ol>
+
+<pre><code class="language-rust">use std::collections::HashMap;
+use aws_lambda_events::apigw::{ApiGatewayProxyRequest, ApiGatewayProxyResponse};
+use futures::{stream, StreamExt};
+use lambda_http::{http::HeaderMap, Error, LambdaEvent};
+// rest of imports
+
+use tracing_subscriber::{layer::SubscriberExt, Registry};
+
+pub async fn function_handler(dynamodb: &amp;Client, event: LambdaEvent&lt;ApiGatewayProxyRequest&gt;) -&gt; Result&lt;ApiGatewayProxyResponse, Error&gt; {
+    // setup like tracing, etc
+
+    let context: &amp;lambda_http::Context = &amp;event.context;
+    let context_str = serde_json::to_string_pretty(context)?;
+
+    let lambda_req_id: String = event.context.request_id.clone();
+    let payload: ApiGatewayProxyRequest = event.payload;
+    let body: String = payload.body.expect("Payload not Found");
+
+    // code to extract body to Vec&lt;BusinessRecord&gt;
+
+    let business_record_list: Vec&lt;BusinessRecord&gt; = body.business_records;
+
+    for business_record in business_record_list {
+        let business_record = BusinessRecord::process(&amp;lambda_req_id, business_record);
+        business_record_list.extend(business_record);
+    }
+
+    // Divide list of records to chunks of 25 and process each with concurrency using 10 workers
+    // Note: 25 is max number of rows writable via DynamoDB `BatchWriteItem`
+    let batches: Vec&lt;Vec&lt;BusinessRecord&gt;&gt; = business_record_list.chunks(25).map(|chunk| chunk.to_vec()).collect();
+
     let client_ref = client;
-    async move { BusinessRecord::create_batch(batch, client_ref).await }
-}))
-.buffer_unordered(10)
-.for_each_concurrent(None, |result| async move {
-    result.unwrap();
-})
-.await;</code></pre>
-<p>We never reached the concurrency argument. A single request of 20,000 records was rejected before the function ran:</p>
+    stream::iter(
+        batches
+            .into_iter()
+            .map(|batch| async move { &lt;BusinessRecord as Create&gt;::create_batch(batch, client_ref).await }),
+    )
+    .buffer_unordered(10) // 10 workers
+    .for_each_concurrent(None, |result| async move {
+        // Handle each result as it completes
+        result.unwrap();
+    })
+    .await;
+
+    info!("\nSuccessfully processed all batches");
+
+    let mut headers = HashMap::new();
+    headers.insert("Content-Type".to_string(), "application/json".to_string());
+
+    let response = ApiGatewayProxyResponse {
+        status_code: 200,
+        headers: HeaderMap::new(),
+        multi_value_headers: HeaderMap::new(),
+        body: None,
+        is_base64_encoded: false,
+    };
+
+    Ok(response)
+}</code></pre>
+
+<p>Right off the bat, 20K records for one request — we didn’t even get to the Lambda!</p>
 <pre><code>HTTP/2 413 Request Entity Too Large
 
-{ "message": "Request Too Long" }</code></pre>
-<p>The ceiling is payload size, not a moral limit on records. Shrinking the record got us through the door at 19,163 items. That was the new batch size for the experiment.</p>
-<h3>Ten workers, ten-second timeout</h3>
+{
+    "message": "Request Too Long"
+}</code></pre>
+<p>Of course, this depends on the payload, so we had to reduce the record size. Surprisingly, <code>19,163</code> was just enough to get past the size test…</p>
+
+<h2># of workers = 10, Lambda timeout = 30 sec (default)</h2>
 <table>
   <thead>
-    <tr><th>Records</th><th>Error rate</th></tr>
+    <tr>
+      <th># of records</th>
+      <th>Error rate %</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td>19,163</td><td>4%</td></tr>
+    <tr>
+      <td>19,163</td>
+      <td>4%</td>
+    </tr>
   </tbody>
 </table>
-<p>Four percent is not a rounding error when the next step is forty times the volume.</p>
-<h2>When the log stream is the wrong tool</h2>
-<p>The Lambda logs, read as a stream, were noisy and slow. CloudWatch Logs Insights, pointed at the same stream, was not. The query was small:</p>
+
+<p>…Nice! However, there were a non-trivial number of errors…</p>
+
+<p>Investigating CloudWatch Lambda logs was actually quite hectic, and we couldn’t figure out what went wrong from the logs. Finally, we realized <strong>CloudWatch Insights</strong> is much quicker and more revealing. All we had to do was click the log stream belonging to the Lambda and type this into the query:</p>
 <pre><code>fields @timestamp, @message
-| filter @message like /error/
+| filter @message like "error"
 | sort @timestamp desc
 | limit 50</code></pre>
-<p>The errors were connection failures. Ten workers in one function were fighting for connections to DynamoDB:</p>
+
+<p>Aha! Errors are showing now. Looks like too many workers are fighting for connections to DynamoDB:</p>
 <pre><code>DEBUG client connection error: connection error: Connection reset by peer (os error 104)</code></pre>
-<h2>Split the function, keep the queue</h2>
-<p>A Lambda wants to be many small invocations, not one crowded one. The next design cut the work in half and put a queue between the halves:</p>
-<pre><code>API Gateway
-  → Lambda that deserializes and enqueues
-  → SQS
-  → Lambda that writes
-  → DynamoDB</code></pre>
-<p>Workers inside the writer dropped from ten to five. The tables below are the writer, not the function in front of the queue.</p>
-<h2>Twenty-five rows, and the timeout that was too polite</h2>
-<p>The chunk size stayed at 25, the <code>BatchWriteItem</code> limit. That number was not what moved the error rate. The timeout was.</p>
-<h3>Five workers, three-second timeout</h3>
+
+<p>Too many batches to process, and one Lambda with its 10 workers seems to be too much. Generally, Lambdas are meant to be invoked in multiples. If we can somehow send batches to N different Lambda invocations through a queue, we can perhaps reduce this bottleneck.</p>
+
+<p>We break down the previous design:</p>
+<pre><code>API GW → Process and Write to DB Lambda → DynamoDB
+
+into
+
+API GW → Deserialize and Queue Lambda → SQS → Write to DB Lambda → DynamoDB</code></pre>
+
+<p>Simultaneously, let’s reduce the number of workers in each Lambda from 10 to 5. Notice the tables below measure the second Lambda’s performance.</p>
+
+<h2># of workers = 5, Lambda timeout = 3 sec (default)</h2>
 <table>
   <thead>
-    <tr><th>Records</th><th>Error rate</th><th>Writer latency</th><th>Writer invocations</th></tr>
+    <tr>
+      <th># of records</th>
+      <th>Error rate %</th>
+      <th>Avg. latency — Lambda 2</th>
+      <th># of invocations — Lambda 2</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td>19,150</td><td>22%</td><td>247 ms</td><td>20</td></tr>
-    <tr><td>15,000</td><td>0%</td><td>176 ms</td><td>17</td></tr>
+    <tr>
+      <td>19,150</td>
+      <td>22%</td>
+      <td>247 ms</td>
+      <td>20</td>
+    </tr>
+    <tr>
+      <td>15,000</td>
+      <td>0%</td>
+      <td>176 ms</td>
+      <td>17</td>
+    </tr>
   </tbody>
 </table>
-<p>Fifteen thousand records landed cleanly. At 19,150, about a fifth of the rows never persisted. DynamoDB refused the connection, the client retried, and the retry outlived a three-second timeout. The function died with the retry still in flight.</p>
-<h3>Five workers, one-minute timeout</h3>
+
+<p>While for 15,000 records no errors were encountered in this design, our max around 19,150 had 22% of records not persisted. This happened because a DynamoDB connection was not obtained, and while the connection was being retried, it surpassed the Lambda’s 3-second timeout.</p>
+<p>What if we increased the timeout to 1 min?</p>
+
+<h2># of workers = 5, Lambda timeout = 1 min (from 3 sec default)</h2>
 <table>
   <thead>
-    <tr><th>Records</th><th>Error rate</th><th>Writer latency</th><th>Writer invocations</th></tr>
+    <tr>
+      <th># of records</th>
+      <th>Error rate %</th>
+      <th>Avg. latency — Lambda 2</th>
+      <th># of invocations — Lambda 2</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td>19,150</td><td>0%</td><td>174 ms</td><td>21</td></tr>
-    <tr><td>15,000</td><td>0%</td><td>176 ms</td><td>15</td></tr>
+    <tr>
+      <td>19,150</td>
+      <td>0%</td>
+      <td>174 ms</td>
+      <td>21</td>
+    </tr>
+    <tr>
+      <td>15,000</td>
+      <td>0%</td>
+      <td>176 ms</td>
+      <td>15</td>
+    </tr>
   </tbody>
 </table>
-<p>The longer timeout was not a performance trick. It was permission for a retry to finish. Latency stayed under 200 milliseconds. We then sent ten requests of 19,150, and raised the writer back to ten workers so the fan-out would be visible.</p>
-<h3>Ten workers, one-minute timeout</h3>
+
+<p>Looks much better now. Now let’s send 10 requests, each containing 19,150 records…</p>
+
+<h2># of workers = 10, Lambda timeout = 1 min (from 3 sec default)</h2>
 <table>
   <thead>
-    <tr><th>Records</th><th>Error rate</th><th>Writer latency</th><th>Writer invocations</th></tr>
+    <tr>
+      <th># of records</th>
+      <th>Error rate %</th>
+      <th>Avg. latency — Lambda 2</th>
+      <th># of invocations — Lambda 2</th>
+    </tr>
   </thead>
   <tbody>
-    <tr><td>191,500</td><td>1 broken pipe</td><td>209 ms</td><td>97</td></tr>
+    <tr>
+      <td>191,500</td>
+      <td>1 occurrence of error due to broken pipe</td>
+      <td>209 ms</td>
+      <td>97</td>
+    </tr>
   </tbody>
 </table>
-<p>One broken pipe is the kind of error that ruins a dashboard. We could not say whether that batch landed. DynamoDB has no cheap <code>COUNT</code> you can lean on to find a hole, and scanning the table for missing keys is not an operations plan. That is an observability problem, not a second copy of the same write loop.</p>
-<p><a href="#heavy-processing-api-gw-ddb-part2">Part 2</a> keeps this shape and changes the spacing: a delivery delay on the queue, a short random delay before each send, a cap on writer concurrency, and a single-threaded writer so a failed batch can be reported back to SQS and retried.</p>
+
+<p>Not too bad; however, that one broken-pipe error makes everyone nervous — we cannot be sure whether it eventually ended up persisting the record. And there is no way one should spend time scanning DynamoDB for missing records (DynamoDB has no <code>COUNT</code> like a regular RDBMS, so finding missing records is indeed difficult). This is definitely a great topic for observability and setting up the right alarms in the system, which we will probably tackle later.</p>
+
+<p>In Part 2, we will explore some other optimization techniques to crank up our throughput with 0 errors:</p>
+<ul>
+  <li>SQS can introduce new messages with some delay configured via <code>Delivery Delay</code>.</li>
+  <li>The queueing process (i.e. Lambda 1) can introduce a random short delay before sending each message. This should help space out requests a bit.</li>
+  <li>Limit the maximum concurrent Lambda 2 runs to a number like 10.</li>
+  <li>Actually make Lambda 2 single-threaded instead of concurrent — the inspiration for that arose for two reasons:
+    <ol>
+      <li>Much more straightforward to report batch failures back to SQS — meaning whatever batch fails the write, after a certain number of attempts, can be sent back to SQS for additional retrying.</li>
+      <li>We are just purely curious what the performance of single-threaded looks like compared to the concurrent one.</li>
+    </ol>
+  </li>
+</ul>

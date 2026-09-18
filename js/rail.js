@@ -1,7 +1,16 @@
-/** Horizontal rail — drag anywhere on the drawer, not only on the photos. */
+/** Horizontal rail — drag the drawer; photos translate inside each frame. */
+
+/** Image is 140% wide. At rest show the right side (like object-position: 100%). */
+const IMAGE_WIDTH = 1.4;
+const MAX_SHIFT = (1 - 1 / IMAGE_WIDTH) * 100;
+
+export function panTransform(nextPercentage) {
+  const x = ((100 + nextPercentage) / 100) * -MAX_SHIFT;
+  return `translateX(${x.toFixed(3)}%)`;
+}
 
 export function bindRail(track) {
-  const images = track.getElementsByClassName("rail-image");
+  const images = [...track.getElementsByClassName("rail-image")];
 
   track.dataset.mouseDownAt = "0";
   track.dataset.prevPercentage = "0";
@@ -13,6 +22,18 @@ export function bindRail(track) {
   const onDrawer = (node) => {
     const el = node instanceof Element ? node : node?.parentElement;
     return !!(el && track.contains(el));
+  };
+
+  const apply = (next) => {
+    track.dataset.percentage = String(next);
+    track.animate(
+      { transform: `translate(${next}%, -50%)` },
+      { duration: 1200, fill: "forwards" }
+    );
+    const pan = panTransform(next);
+    for (const image of images) {
+      image.animate({ transform: pan }, { duration: 1200, fill: "forwards" });
+    }
   };
 
   const handleOnDown = (e) => {
@@ -34,19 +55,12 @@ export function bindRail(track) {
     const maxDelta = window.innerWidth / 2;
     const percentage = (mouseDelta / maxDelta) * -100;
     const next = Math.max(Math.min(parseFloat(track.dataset.prevPercentage) + percentage, 0), -100);
-
-    track.dataset.percentage = String(next);
-    track.animate(
-      { transform: `translate(${next}%, -50%)` },
-      { duration: 1200, fill: "forwards" }
-    );
-    for (const image of images) {
-      image.animate(
-        { objectPosition: `${100 + next}% center` },
-        { duration: 1200, fill: "forwards" }
-      );
-    }
+    apply(next);
   };
+
+  for (const image of images) {
+    image.style.transform = panTransform(0);
+  }
 
   window.onmousedown = (e) => {
     if (!onDrawer(e.target)) return;

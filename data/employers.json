@@ -1,0 +1,39 @@
+{
+  "northern-labs": {
+    "name": "Northern Labs",
+    "href": "https://www.northernlabs.ca",
+    "logo": "images/employers/northern-labs.png",
+    "role": "Payments",
+    "lede": "",
+    "highlights": [
+      "Crypto and card payments",
+      "Coinbase Commerce",
+      "Checkout.com processing",
+      "Sardine KYC",
+      "FMEA and monitoring"
+    ]
+  },
+  "loyaltyone": {
+    "name": "LoyaltyOne",
+    "href": "https://www.loyalty.com",
+    "logo": "images/employers/loyaltyone.png",
+    "role": "Transaction core",
+    "lede": "",
+    "highlights": [
+      "Payment and compliance",
+      "Real-Time Transaction Processing in millions per day"
+    ]
+  },
+  "ericsson": {
+    "name": "Ericsson",
+    "href": "https://www.ericsson.com",
+    "logo": "images/employers/ericsson.svg",
+    "role": "Charging and billing",
+    "lede": "",
+    "highlights": [
+      "Fraud detection",
+      "Payment authorization",
+      "Java microservice billing"
+    ]
+  }
+}

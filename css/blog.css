@@ -164,7 +164,219 @@
 }
 
 .post .videos {
+  display: grid;
+  gap: 1rem;
   margin-top: 1.4rem;
+}
+
+.employer-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.employer {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 0.45rem;
+  background: transparent;
+  color: var(--paper-ink);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.employer:hover {
+  border-color: rgba(176, 137, 88, 0.35);
+  background: rgba(176, 137, 88, 0.1);
+  color: var(--brass-deep);
+}
+
+.employer:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+.employer-logo {
+  flex: 0 0 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  min-width: 0;
+  max-width: 1.125rem;
+  max-height: 1.125rem;
+  object-fit: contain;
+  border-radius: 0.2rem;
+  background: #fff;
+  padding: 0.08rem;
+  box-shadow: inset 0 0 0 1px rgba(31, 28, 23, 0.08);
+}
+
+.employer-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  min-width: 0;
+  border-radius: 0.2rem;
+  background: #1f1c17;
+  color: #f6f1e8;
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+}
+
+.employer-name {
+  font-size: 1.05rem;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+
+.employer-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.employer-drawer[hidden] {
+  display: none !important;
+}
+
+.employer-drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(12, 13, 11, 0.55);
+  cursor: pointer;
+}
+
+.employer-drawer__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(28rem, 100%);
+  height: 100%;
+  background: #f6f1e8;
+  color: #1f1c17;
+  box-shadow: -16px 0 40px rgba(0, 0, 0, 0.28);
+  outline: none;
+  animation: drawer-in 0.28s var(--ease) both;
+}
+
+@keyframes drawer-in {
+  from { transform: translateX(1.25rem); opacity: 0.6; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.employer-drawer__head {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.9rem 1rem 0;
+}
+
+.employer-drawer__close {
+  border: 1px solid rgba(176, 137, 88, 0.35);
+  border-radius: 999px;
+  background: transparent;
+  color: #1f1c17;
+  padding: 0.35rem 0.85rem;
+  font: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.employer-drawer__close:hover {
+  border-color: var(--brass-deep);
+  color: var(--brass-deep);
+}
+
+.employer-drawer__body {
+  overflow: auto;
+  padding: 0.5rem 1.35rem 2rem;
+}
+
+.employer-drawer__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.employer-drawer__brand img {
+  flex: 0 0 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 0;
+  max-width: 1.5rem;
+  max-height: 1.5rem;
+  object-fit: contain;
+  border-radius: 0.25rem;
+  background: #fff;
+  padding: 0.12rem;
+  box-shadow: inset 0 0 0 1px rgba(31, 28, 23, 0.08);
+}
+
+.employer-drawer__role {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(31, 28, 23, 0.55);
+}
+
+.employer-drawer__brand h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+}
+
+.employer-drawer__lede {
+  margin: 0 0 1rem;
+  line-height: 1.55;
+  color: rgba(31, 28, 23, 0.82);
+}
+
+.employer-drawer__list {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.7rem;
+  line-height: 1.5;
+}
+
+.employer-drawer__site {
+  margin: 1.4rem 0 0;
+}
+
+.employer-drawer__site a {
+  color: var(--brass-deep);
+  font-weight: 560;
+}
+
+.employer-drawer__site a:hover {
+  color: #1f1c17;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .employer-drawer__panel {
+    animation: none;
+  }
 }
 
 .post .video-frame figcaption {
@@ -271,7 +483,6 @@
 @media (min-width: 1100px) {
   body[data-page="blog"] .cue--down {
     left: 50%;
-    transform: translateX(-50%);
   }
 }
 

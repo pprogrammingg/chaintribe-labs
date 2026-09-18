@@ -227,14 +227,18 @@ body[data-page="profile"] main {
 
 .rail-card img,
 .rail-image {
-  width: 100%;
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 140%;
   height: 100%;
   max-width: none;
   object-fit: cover;
-  object-position: 100% center;
+  object-position: center;
+  transform: translateX(-28.571%);
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
+  will-change: transform;
 }
 
 .rail-overlay {

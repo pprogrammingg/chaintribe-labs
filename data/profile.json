@@ -12,8 +12,8 @@
       "id": "dex",
       "title": "Decentralized Exchange",
       "stack": "Radix · Scrypto · React",
-      "image": "images/indigenous_exchange3.jpeg",
-      "alt": "Illustrated exchange beside a river, used as the mark for the DEX",
+      "image": "images/dex.png",
+      "alt": "Screenshot of the decentralized exchange interface",
       "summary": "A Radix exchange with three recorded flows: connect an account, add liquidity, and swap. Components are Scrypto, the interface is React, and the front end acknowledges the Moralis DEX reference.",
       "body": "data/posts/radix-dex.html",
       "links": [
@@ -30,8 +30,8 @@
       "id": "loyalty",
       "title": "Loyalty",
       "stack": "Radix · Scrypto · React",
-      "image": "images/indigenous_loyalty.jpeg",
-      "alt": "Illustrated gathering, used as the mark for the loyalty project",
+      "image": "images/loyalty.png",
+      "alt": "Screenshot of the loyalty program interface",
       "summary": "Membership cards live on Radix, and points come from finished tasks and challenges rather than a private spreadsheet. The program can show its own history, and the interface acknowledges RDX Works’ Gumball Club.",
       "body": "data/posts/ledger-loyalty.html",
       "links": [
@@ -43,13 +43,12 @@
     {
       "id": "experience",
       "title": "More Experience",
-      "stack": "Northern Labs · Coinbase Commerce · Checkout.com",
-      "image": "images/indigenous_experience.jpeg",
-      "alt": "Illustrated scene used as the mark for the payments work",
-      "summary": "At Northern Labs I took a payment service through its full lifecycle for both crypto and card payments. It spoke to Coinbase Commerce and Checkout.com, and the same stretch included onboarding and mentoring.",
+      "stack": "Northern Labs · LoyaltyOne · Ericsson",
+      "image": "images/experience.png",
+      "alt": "Screenshot from the payments and experience work",
+      "summary": "Prior consulting and product engagements with Northern Labs, LoyaltyOne, and Ericsson.",
       "body": "data/posts/northern-labs-payments.html",
       "links": [
-        { "label": "Northern Labs", "href": "https://www.northernlabs.ca" },
         { "label": "LinkedIn", "href": "https://www.linkedin.com/in/pnajafi" }
       ],
       "videos": []
