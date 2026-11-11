@@ -97,48 +97,12 @@ body[data-page="profile"] main {
   overflow: hidden;
 }
 
-.rail-hint {
+.rail-stage {
   position: absolute;
-  top: 1.25rem;
   left: 50%;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  margin: 0;
-  transform: translateX(-50%);
-  color: var(--muted);
-  font-size: 0.82rem;
-  letter-spacing: 0.04em;
-  text-align: center;
-  pointer-events: none;
-  user-select: none;
-  max-width: min(36rem, calc(100% - 2rem));
-}
-
-.rail-arrow,
-.rail-arrow--right {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-right: 1.5px solid var(--brass);
-  border-bottom: 1.5px solid var(--brass);
-  flex: none;
-}
-
-.rail-arrow {
-  transform: rotate(135deg);
-}
-
-.rail-arrow--right {
-  transform: rotate(-45deg);
-}
-
-.rail-do {
-  color: var(--ink);
-}
-
-.rail-or {
-  color: var(--brass);
+  top: 52%;
+  transform: translateY(-50%);
+  will-change: transform;
 }
 
 #image-track,
@@ -146,10 +110,8 @@ body[data-page="profile"] main {
   display: flex;
   align-items: center;
   gap: 4vmin;
-  position: absolute;
-  left: 50%;
-  top: 52%;
-  transform: translate(0%, -50%);
+  position: relative;
+  transform: translate(0%, 0);
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
@@ -167,8 +129,17 @@ body[data-page="profile"] main {
     0 18px 48px rgba(0, 0, 0, 0.35);
 }
 
+#image-track:hover,
+.rail-drawer:hover,
+.rail-drawer:hover .rail-card,
+.rail-drawer:hover .rail-handle {
+  cursor: grab;
+}
+
 #image-track:active,
-.rail-drawer:active {
+.rail-drawer:active,
+.rail-drawer:active .rail-card,
+.rail-drawer:active .rail-handle {
   cursor: grabbing;
 }
 

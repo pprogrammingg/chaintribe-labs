@@ -56,10 +56,13 @@ function files() {
     assert(fs.existsSync(path.join(ROOT, item.href)), `nav target missing: ${item.href}`);
   }
     assert(site.nav.at(-1).id === "contact", "contact is the last nav item");
-    const projectEssays = ["radix-dex", "ledger-loyalty"];
-    for (const file of projectEssays) {
+    const projectEssays = {
+      "radix-dex": 2,
+      "ledger-loyalty": 1,
+    };
+    for (const [file, paragraphs] of Object.entries(projectEssays)) {
       const body = fs.readFileSync(path.join(ROOT, "data/posts", `${file}.html`), "utf8");
-      assert((body.match(/<p\b/g) || []).length === 2, `${file} stays at two paragraphs`);
+      assert((body.match(/<p\b/g) || []).length === paragraphs, `${file} stays at ${paragraphs} paragraph(s)`);
     }
     const experience = JSON.parse(fs.readFileSync(path.join(ROOT, "data/posts.json"), "utf8"))
       .posts.find((post) => post.id === "experience");
@@ -259,7 +262,7 @@ async function browser(origin, debugPort) {
       });
     })()`));
     assert(pan.handleLeft < 200, `drawer handle should slide in from the left after drag, left=${pan.handleLeft}`);
-    assert(pan.labels.join("|") === "Decentralized Exchange|Loyalty|More Experience", `short card labels, got ${pan.labels.join("|")}`);
+    assert(pan.labels.join("|") === "Decentralized Exchange|Web3 Loyalty|More Experience", `short card labels, got ${pan.labels.join("|")}`);
     assert(pan.href === "blog.html#dex", "clicking a card opens its blog essay");
     await shot(profile, "profile-after-drag.png");
     await shot(profile, "profile.png");

@@ -1,12 +1,9 @@
 {
   "chain": [
     { "id": "dex", "label": "Dex" },
-    { "id": "loyalty", "label": "Loyalty" },
+    { "id": "loyalty", "label": "Web3 Loyalty" },
     { "id": "experience", "label": "Experience" }
   ],
-  "work": {
-    "hint": "Drag the drawer left or right. Click a card to open it."
-  },
   "projects": [
     {
       "id": "dex",
@@ -28,11 +25,11 @@
     },
     {
       "id": "loyalty",
-      "title": "Loyalty",
+      "title": "Web3 Loyalty",
       "stack": "Radix · Scrypto · React",
       "image": "images/loyalty.png",
       "alt": "Screenshot of the loyalty program interface",
-      "summary": "Membership cards live on Radix, and points come from finished tasks and challenges rather than a private spreadsheet. The program can show its own history, and the interface acknowledges RDX Works’ Gumball Club.",
+      "summary": "Mint on-chain loyalty cards for a person and give them points.",
       "body": "data/posts/ledger-loyalty.html",
       "links": [
         { "label": "Radix docs", "href": "https://docs.radixdlt.com/docs" },

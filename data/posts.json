@@ -25,8 +25,8 @@
       "file": "radix-dex",
       "title": "Decentralized Exchange",
       "summary": "",
-      "image": "images/dex.png",
-      "imageAlt": "Screenshot of the decentralized exchange interface",
+      "image": "images/dex-blog.png",
+      "imageAlt": "Traders exchanging goods over spices at a market stall",
       "minutes": 4,
       "videos": [
         { "youtubeId": "7EkfFd95keE", "title": "Part 1 — Connecting the site to a Radix account" },
@@ -37,7 +37,7 @@
     {
       "id": "loyalty",
       "file": "ledger-loyalty",
-      "title": "Loyalty",
+      "title": "Web3 Loyalty",
       "summary": "",
       "image": "images/loyalty.png",
       "imageAlt": "Screenshot of the loyalty program interface",
